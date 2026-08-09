@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from 'react'
 import { ArrowLeftRight, BookOpen, User, CheckCircle2, AlertCircle, Calendar } from 'lucide-react'
+import { Checkbox } from '@/components/ui/checkbox'
+import { getErrorMessage } from '@/lib/pocketbase/errors'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -25,6 +27,8 @@ export default function Emprestimos() {
   const [bookError, setBookError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState<string | null>(null)
+  const [isEstudo, setIsEstudo] = useState(false)
+  const [blockMessage, setBlockMessage] = useState<string | null>(null)
 
   const userInputRef = useRef<HTMLInputElement>(null)
   const bookInputRef = useRef<HTMLInputElement>(null)
@@ -79,11 +83,13 @@ export default function Emprestimos() {
   const handleConfirm = async () => {
     if (!foundLeitor || !foundLivro || !user || !canConfirm) return
     setSubmitting(true)
+    setBlockMessage(null)
     try {
       const emp = await createEmprestimo({
         leitor: foundLeitor.id,
         livro: foundLivro.id,
         responsavel: user.id,
+        tipo_emprestimo: isEstudo ? 'estudo' : 'comum',
       })
       await updateLivroStatus(foundLivro.id, 'emprestado')
       setSuccess(
@@ -95,13 +101,12 @@ export default function Emprestimos() {
       setFoundLivro(null)
       setUserError(null)
       setBookError(null)
+      setIsEstudo(false)
       setTimeout(() => userInputRef.current?.focus(), 100)
-    } catch (err: any) {
-      if (err?.response) {
-        toast.error('Erro ao registrar empréstimo. Tente novamente.')
-      } else {
-        toast.error(err?.message || 'Erro ao registrar empréstimo. Tente novamente.')
-      }
+    } catch (err) {
+      const msg = getErrorMessage(err)
+      setBlockMessage(msg)
+      toast.error(msg)
     } finally {
       setSubmitting(false)
     }
@@ -112,12 +117,14 @@ export default function Emprestimos() {
     setFoundLeitor(null)
     setUserError(null)
     setSuccess(null)
+    setBlockMessage(null)
   }
 
   const onBookChange = (v: string) => {
     setBookSearch(v)
     setFoundLivro(null)
     setBookError(null)
+    setBlockMessage(null)
   }
 
   return (
@@ -136,6 +143,13 @@ export default function Emprestimos() {
         <div className="bg-green-50 border border-green-300 rounded-xl p-4 flex items-start gap-3 animate-fade-in">
           <CheckCircle2 className="w-6 h-6 text-green-600 shrink-0 mt-0.5" />
           <p className="text-lg font-semibold text-green-800">{success}</p>
+        </div>
+      )}
+
+      {blockMessage && (
+        <div className="bg-red-50 border-2 border-red-400 rounded-xl p-4 flex items-start gap-3 animate-fade-in">
+          <AlertCircle className="w-7 h-7 text-red-600 shrink-0 mt-0.5" />
+          <p className="text-lg font-bold text-red-800">{blockMessage}</p>
         </div>
       )}
 
@@ -225,14 +239,32 @@ export default function Emprestimos() {
           )}
         </div>
 
+        <div className="bg-[#1F5C8B]/5 border-2 border-[#1F5C8B]/30 rounded-xl p-4">
+          <label className="flex items-center gap-4 cursor-pointer select-none">
+            <Checkbox
+              checked={isEstudo}
+              onCheckedChange={(checked) => {
+                setIsEstudo(checked === true)
+                setBlockMessage(null)
+              }}
+              className="w-8 h-8 border-2 border-[#1F5C8B]"
+            />
+            <div>
+              <span className="text-xl font-bold text-gray-900">Estudo</span>
+              <p className="text-base text-gray-600">
+                Marque para empréstimo de estudo (90 dias de prazo)
+              </p>
+            </div>
+          </label>
+        </div>
+
         <div className="flex items-center gap-2 text-base text-gray-500 flex-wrap">
           <Calendar className="w-5 h-5" />
-          <span>Prazo de devolução: {config?.prazo_devolucao_dias ?? LOAN_PERIOD_DAYS} dias</span>
-          {config?.limite_livros_por_usuario && (
-            <span className="ml-4">
-              Máximo de {config.limite_livros_por_usuario} livros simultâneos
-            </span>
-          )}
+          <span>
+            Prazo de devolução: {isEstudo ? 90 : (config?.prazo_devolucao_dias ?? LOAN_PERIOD_DAYS)}{' '}
+            dias
+          </span>
+          <span className="ml-4">Limite: 1 livro comum + 1 livro de estudo</span>
         </div>
 
         <Button

@@ -14,6 +14,8 @@ export default function Cursos() {
   const [formOpen, setFormOpen] = useState(false)
   const [detailCurso, setDetailCurso] = useState<Curso | null>(null)
   const [detailOpen, setDetailOpen] = useState(false)
+  const [editCurso, setEditCurso] = useState<Curso | null>(null)
+  const [editFormOpen, setEditFormOpen] = useState(false)
 
   const loadData = useCallback(async () => {
     try {
@@ -41,6 +43,16 @@ export default function Cursos() {
 
   const handleCreated = () => {
     toast.success('Curso cadastrado com sucesso!')
+  }
+
+  const handleEditSaved = () => {
+    toast.success('Curso atualizado com sucesso!')
+  }
+
+  const handleEdit = (curso: Curso) => {
+    setDetailOpen(false)
+    setEditCurso(curso)
+    setEditFormOpen(true)
   }
 
   return (
@@ -106,8 +118,19 @@ export default function Cursos() {
         </div>
       )}
 
-      <CursoForm open={formOpen} onOpenChange={setFormOpen} onCreated={handleCreated} />
-      <CursoDetail curso={detailCurso} open={detailOpen} onOpenChange={setDetailOpen} />
+      <CursoForm open={formOpen} onOpenChange={setFormOpen} onSaved={handleCreated} />
+      <CursoForm
+        open={editFormOpen}
+        onOpenChange={setEditFormOpen}
+        onSaved={handleEditSaved}
+        curso={editCurso}
+      />
+      <CursoDetail
+        curso={detailCurso}
+        open={detailOpen}
+        onOpenChange={setDetailOpen}
+        onEdit={handleEdit}
+      />
     </div>
   )
 }

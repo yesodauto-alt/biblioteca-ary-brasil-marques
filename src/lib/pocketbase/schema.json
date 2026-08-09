@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-09T20:11:55.534Z",
+  "generatedAt": "2026-08-09T20:25:30.470Z",
   "collections": [
     {
       "name": "users",
@@ -305,6 +305,13 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "tipo_emprestimo",
+          "type": "select",
+          "required": false,
+          "system": false,
+          "selectValues": ["comum", "estudo"]
         }
       ],
       "indexes": [
@@ -315,7 +322,8 @@
         "CREATE INDEX idx_emprestimos_created ON emprestimos (created)",
         "CREATE INDEX `idx_emprestimos_data_emprestimo` ON `emprestimos` (data_emprestimo)",
         "CREATE INDEX `idx_emprestimos_data_prevista` ON `emprestimos` (data_prevista_devolucao)",
-        "CREATE INDEX `idx_emprestimos_data_devolucao` ON `emprestimos` (data_devolucao_real)"
+        "CREATE INDEX `idx_emprestimos_data_devolucao` ON `emprestimos` (data_devolucao_real)",
+        "CREATE INDEX `idx_emprestimos_tipo` ON `emprestimos` (tipo_emprestimo)"
       ]
     },
     {
@@ -488,6 +496,12 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "tempo_emprestimo_dias",
+          "type": "number",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": ["CREATE INDEX idx_cursos_nome ON cursos (nome)"]

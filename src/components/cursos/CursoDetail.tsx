@@ -1,5 +1,5 @@
 import { useEffect, useState, useCallback } from 'react'
-import { Search, Trash2, BookOpen, Plus, Loader2 } from 'lucide-react'
+import { Search, Trash2, BookOpen, Plus, Loader2, Pencil } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -27,9 +27,10 @@ interface CursoDetailProps {
   curso: Curso | null
   open: boolean
   onOpenChange: (open: boolean) => void
+  onEdit?: (curso: Curso) => void
 }
 
-export function CursoDetail({ curso, open, onOpenChange }: CursoDetailProps) {
+export function CursoDetail({ curso, open, onOpenChange, onEdit }: CursoDetailProps) {
   const [links, setLinks] = useState<CursoLivro[]>([])
   const [loading, setLoading] = useState(false)
   const [search, setSearch] = useState('')
@@ -101,11 +102,26 @@ export function CursoDetail({ curso, open, onOpenChange }: CursoDetailProps) {
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent className="w-full sm:max-w-lg max-h-[100vh] overflow-y-auto">
         <SheetHeader>
-          <SheetTitle className="text-xl font-bold">{curso.nome}</SheetTitle>
+          <div className="flex items-center justify-between gap-2">
+            <SheetTitle className="text-xl font-bold">{curso.nome}</SheetTitle>
+            {onEdit && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => onEdit(curso)}
+                className="shrink-0"
+              >
+                <Pencil className="w-4 h-4 mr-1" />
+                Editar
+              </Button>
+            )}
+          </div>
           <SheetDescription className="text-base">
             {curso.ano_nivel_etapa
               ? `Ano/nível: ${curso.ano_nivel_etapa}`
               : 'Gerencie os livros vinculados a este curso.'}
+            {' · '}
+            Empréstimo: {curso.tempo_emprestimo_dias || 90} dias
           </SheetDescription>
         </SheetHeader>
 

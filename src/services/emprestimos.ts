@@ -12,6 +12,7 @@ export interface Emprestimo {
   status: 'ativo' | 'devolvido' | 'atrasado'
   quantidade_renovacoes: number
   responsavel: string
+  tipo_emprestimo: 'comum' | 'estudo'
   created: string
   updated: string
   expand?: {
@@ -63,25 +64,53 @@ export interface CreateEmprestimoData {
   leitor: string
   livro: string
   responsavel: string
+  tipo_emprestimo?: 'comum' | 'estudo'
 }
 
 export const createEmprestimo = async (data: CreateEmprestimoData): Promise<Emprestimo> => {
+  const tipo = data.tipo_emprestimo || 'comum'
+
   let loanPeriod = LOAN_PERIOD_DAYS
-  let maxBooks = DEFAULT_MAX_BOOKS
   try {
     const config = await getConfiguracoes()
     if (config?.prazo_devolucao_dias) loanPeriod = config.prazo_devolucao_dias
-    if (config?.limite_livros_por_usuario) maxBooks = config.limite_livros_por_usuario
   } catch {
     /* intentionally ignored */
+  }
+
+  if (tipo === 'estudo') {
+    loanPeriod = 90
   }
 
   const activeLoans = await pb.collection('emprestimos').getFullList({
     filter: `leitor = "${data.leitor}" && (status = "ativo" || status = "atrasado")`,
   })
-  if (activeLoans.length >= maxBooks) {
+
+  let comumCount = 0
+  let estudoCount = 0
+  for (const loan of activeLoans) {
+    const loanTipo = (loan as { tipo_emprestimo?: string }).tipo_emprestimo || 'comum'
+    if (loanTipo === 'estudo') estudoCount++
+    else comumCount++
+  }
+
+  const total = comumCount + estudoCount
+
+  if (total >= 2) {
     throw new Error(
-      `O leitor já possui o máximo de ${maxBooks} livros emprestados simultaneamente.`,
+      'Este usuário já atingiu o limite de empréstimos: 1 livro comum e 1 livro de estudo.',
+    )
+  }
+
+  if (tipo === 'comum' && comumCount >= 1) {
+    throw new Error(
+      'Este usuário já possui um livro comum emprestado. É permitido apenas um livro de estudo adicional.',
+    )
+  }
+
+  if (tipo === 'estudo' && estudoCount >= 1) {
+    throw new Error(
+      'Este usuário já possui um livro de estudo emprestado. É permitido apenas um livro comum.',
     )
   }
 
@@ -99,6 +128,7 @@ export const createEmprestimo = async (data: CreateEmprestimoData): Promise<Empr
     status: 'ativo',
     quantidade_renovacoes: 0,
     responsavel: data.responsavel,
+    tipo_emprestimo: tipo,
   })
 }
 

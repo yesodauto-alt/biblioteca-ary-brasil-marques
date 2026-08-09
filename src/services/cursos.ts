@@ -5,6 +5,7 @@ export interface Curso {
   id: string
   nome: string
   ano_nivel_etapa: string
+  tempo_emprestimo_dias: number
   created: string
   updated: string
 }
@@ -12,6 +13,7 @@ export interface Curso {
 export interface CursoFormData {
   nome: string
   ano_nivel_etapa?: string
+  tempo_emprestimo_dias?: number
 }
 
 export interface CursoLivro {

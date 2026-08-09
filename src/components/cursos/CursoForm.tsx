@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { GraduationCap, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -10,24 +10,41 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog'
-import { createCurso, type CursoFormData } from '@/services/cursos'
+import { createCurso, updateCurso, type CursoFormData, type Curso } from '@/services/cursos'
 import { extractFieldErrors, type FieldErrors } from '@/lib/pocketbase/errors'
 
 interface CursoFormProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onCreated: () => void
+  onSaved: () => void
+  curso?: Curso | null
 }
 
-export function CursoForm({ open, onOpenChange, onCreated }: CursoFormProps) {
+export function CursoForm({ open, onOpenChange, onSaved, curso }: CursoFormProps) {
   const [loading, setLoading] = useState(false)
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [form, setForm] = useState<CursoFormData>({
     nome: '',
     ano_nivel_etapa: '',
+    tempo_emprestimo_dias: 90,
   })
 
-  const handleFieldChange = (field: keyof CursoFormData, value: string) => {
+  useEffect(() => {
+    if (open) {
+      if (curso) {
+        setForm({
+          nome: curso.nome,
+          ano_nivel_etapa: curso.ano_nivel_etapa || '',
+          tempo_emprestimo_dias: curso.tempo_emprestimo_dias || 90,
+        })
+      } else {
+        setForm({ nome: '', ano_nivel_etapa: '', tempo_emprestimo_dias: 90 })
+      }
+      setFieldErrors({})
+    }
+  }, [open, curso])
+
+  const handleFieldChange = (field: keyof CursoFormData, value: string | number) => {
     setForm((prev) => ({ ...prev, [field]: value }))
     setFieldErrors((prev) => ({ ...prev, [field]: '' }))
   }
@@ -39,13 +56,17 @@ export function CursoForm({ open, onOpenChange, onCreated }: CursoFormProps) {
     try {
       const data: CursoFormData = {
         nome: form.nome.trim(),
+        tempo_emprestimo_dias: Number(form.tempo_emprestimo_dias) || 90,
       }
       if (form.ano_nivel_etapa?.trim()) data.ano_nivel_etapa = form.ano_nivel_etapa.trim()
 
-      await createCurso(data)
-      onCreated()
+      if (curso) {
+        await updateCurso(curso.id, data)
+      } else {
+        await createCurso(data)
+      }
+      onSaved()
       onOpenChange(false)
-      setForm({ nome: '', ano_nivel_etapa: '' })
     } catch (error) {
       setFieldErrors(extractFieldErrors(error))
     } finally {
@@ -57,9 +78,13 @@ export function CursoForm({ open, onOpenChange, onCreated }: CursoFormProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">Novo Curso</DialogTitle>
+          <DialogTitle className="text-xl font-bold">
+            {curso ? 'Editar Curso' : 'Novo Curso'}
+          </DialogTitle>
           <DialogDescription className="text-base">
-            Cadastre um novo curso de estudo da casa.
+            {curso
+              ? 'Edite as informações do curso de estudo.'
+              : 'Cadastre um novo curso de estudo da casa.'}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -72,7 +97,7 @@ export function CursoForm({ open, onOpenChange, onCreated }: CursoFormProps) {
               value={form.nome}
               onChange={(e) => handleFieldChange('nome', e.target.value)}
               className="h-12 text-base"
-              placeholder="Ex: ESDE, Curso Mediúnico..."
+              placeholder="Ex: ESDE — 1º Ano, Curso Mediúnico..."
               required
             />
             {fieldErrors.nome && (
@@ -96,6 +121,28 @@ export function CursoForm({ open, onOpenChange, onCreated }: CursoFormProps) {
             )}
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="tempo_emprestimo_dias" className="text-base font-semibold">
+              Tempo de empréstimo (dias) *
+            </Label>
+            <Input
+              id="tempo_emprestimo_dias"
+              type="number"
+              min={1}
+              value={form.tempo_emprestimo_dias}
+              onChange={(e) => handleFieldChange('tempo_emprestimo_dias', e.target.value)}
+              className="h-12 text-base"
+            />
+            <p className="text-sm text-gray-500">
+              Padrão: 90 dias para livros de estudo vinculados a este curso.
+            </p>
+            {fieldErrors.tempo_emprestimo_dias && (
+              <p className="text-sm text-red-500 font-medium">
+                {fieldErrors.tempo_emprestimo_dias}
+              </p>
+            )}
+          </div>
+
           <div className="flex gap-3 pt-2">
             <Button
               type="button"
@@ -115,7 +162,7 @@ export function CursoForm({ open, onOpenChange, onCreated }: CursoFormProps) {
               ) : (
                 <GraduationCap className="w-5 h-5 mr-2" />
               )}
-              Cadastrar
+              {curso ? 'Salvar' : 'Cadastrar'}
             </Button>
           </div>
         </form>
