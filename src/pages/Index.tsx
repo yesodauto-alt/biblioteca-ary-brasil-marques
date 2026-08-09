@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import {
   Plus,
   CornerUpLeft,
+  RefreshCw,
   BookOpen,
   Calendar,
   AlertTriangle,
@@ -151,7 +152,7 @@ export default function Index() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <Button
           onClick={() => navigate('/emprestimos')}
           className="h-16 text-xl font-bold bg-[#1F5C8B] hover:bg-[#174A73]"
@@ -164,6 +165,13 @@ export default function Index() {
         >
           <CornerUpLeft className="w-7 h-7 mr-2" />
           Devolução
+        </Button>
+        <Button
+          onClick={() => navigate('/renovacao')}
+          className="h-16 text-xl font-bold bg-[#2E7D32] hover:bg-[#1B5E20]"
+        >
+          <RefreshCw className="w-7 h-7 mr-2" />
+          Renovar empréstimo
         </Button>
       </div>
 
