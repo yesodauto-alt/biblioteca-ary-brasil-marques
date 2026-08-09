@@ -11,6 +11,7 @@ import {
   Menu,
   X,
   BookMarked,
+  CornerUpLeft,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
@@ -20,6 +21,7 @@ const NAV_ITEMS = [
   { path: '/usuarios', label: 'Usuários', icon: Users },
   { path: '/acervo', label: 'Acervo', icon: BookOpen },
   { path: '/emprestimos', label: 'Empréstimos', icon: ArrowLeftRight },
+  { path: '/devolucao', label: 'Devolver', icon: CornerUpLeft },
   { path: '/relatorios', label: 'Relatórios', icon: BarChart3 },
   { path: '/configuracoes', label: 'Configurações', icon: Settings },
 ]

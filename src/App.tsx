@@ -11,6 +11,7 @@ import Login from '@/pages/Login'
 import Usuarios from '@/pages/Usuarios'
 import Acervo from '@/pages/Acervo'
 import Emprestimos from '@/pages/Emprestimos'
+import Devolucao from '@/pages/Devolucao'
 import Relatorios from '@/pages/Relatorios'
 import Configuracoes from '@/pages/Configuracoes'
 import NotFound from '@/pages/NotFound'
@@ -35,6 +36,7 @@ const App = () => (
             <Route path="/usuarios" element={<Usuarios />} />
             <Route path="/acervo" element={<Acervo />} />
             <Route path="/emprestimos" element={<Emprestimos />} />
+            <Route path="/devolucao" element={<Devolucao />} />
             <Route path="/relatorios" element={<Relatorios />} />
             <Route path="/configuracoes" element={<Configuracoes />} />
           </Route>

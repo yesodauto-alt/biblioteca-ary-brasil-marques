@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-09T19:00:59.618Z",
+  "generatedAt": "2026-08-09T19:10:33.537Z",
   "collections": [
     {
       "name": "users",
@@ -367,6 +367,46 @@
         }
       ],
       "indexes": ["CREATE INDEX idx_auditoria_usuario ON auditoria (usuario)"]
+    },
+    {
+      "name": "configuracoes",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != ''",
+        "view": "@request.auth.id != ''",
+        "create": "@request.auth.id != ''",
+        "update": "@request.auth.id != ''",
+        "delete": "@request.auth.id != ''"
+      },
+      "fields": [
+        {
+          "name": "prazo_devolucao_dias",
+          "type": "number",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "limite_renovacoes",
+          "type": "number",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": []
     }
   ]
 }

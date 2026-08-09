@@ -1,4 +1,6 @@
 import pb from '@/lib/pocketbase/client'
+import { getLivroByCadastro } from '@/services/livros'
+import { getConfiguracoes } from '@/services/configuracoes'
 
 export interface Emprestimo {
   id: string
@@ -63,9 +65,17 @@ export interface CreateEmprestimoData {
 }
 
 export const createEmprestimo = async (data: CreateEmprestimoData): Promise<Emprestimo> => {
+  let loanPeriod = LOAN_PERIOD_DAYS
+  try {
+    const config = await getConfiguracoes()
+    if (config?.prazo_devolucao_dias) loanPeriod = config.prazo_devolucao_dias
+  } catch {
+    /* intentionally ignored */
+  }
+
   const today = new Date()
   const returnDate = new Date()
-  returnDate.setDate(returnDate.getDate() + LOAN_PERIOD_DAYS)
+  returnDate.setDate(returnDate.getDate() + loanPeriod)
 
   const toDateStr = (d: Date) => d.toISOString().split('T')[0]
 
@@ -77,5 +87,36 @@ export const createEmprestimo = async (data: CreateEmprestimoData): Promise<Empr
     status: 'ativo',
     quantidade_renovacoes: 0,
     responsavel: data.responsavel,
+  })
+}
+
+export const getActiveEmprestimoByLivroCadastro = async (
+  numeroCadastro: string,
+): Promise<EmprestimoWithLeitor> => {
+  const livro = await getLivroByCadastro(numeroCadastro)
+  return await pb
+    .collection('emprestimos')
+    .getFirstListItem<EmprestimoWithLeitor>(
+      `livro = "${livro.id}" && (status = "ativo" || status = "atrasado")`,
+      { expand: 'leitor,livro', sort: '-data_emprestimo' },
+    )
+}
+
+export const devolverEmprestimo = async (id: string): Promise<Emprestimo> => {
+  const today = new Date().toISOString().split('T')[0]
+  return await pb.collection('emprestimos').update<Emprestimo>(id, {
+    data_devolucao_real: today,
+    status: 'devolvido',
+  })
+}
+
+export const renovarEmprestimo = async (
+  id: string,
+  novaDataDevolucao: string,
+): Promise<Emprestimo> => {
+  const existing = await pb.collection('emprestimos').getOne<Emprestimo>(id)
+  return await pb.collection('emprestimos').update<Emprestimo>(id, {
+    data_prevista_devolucao: novaDataDevolucao,
+    quantidade_renovacoes: existing.quantidade_renovacoes + 1,
   })
 }
