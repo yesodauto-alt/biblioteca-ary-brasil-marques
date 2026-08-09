@@ -29,3 +29,27 @@ export const getEmprestimosByLeitor = async (leitorId: string): Promise<Empresti
     expand: 'livro',
   })
 }
+
+export interface EmprestimoWithLeitor extends Emprestimo {
+  expand?: {
+    livro?: {
+      id: string
+      titulo: string
+      autor: string
+      numero_cadastro: string
+    }
+    leitor?: {
+      id: string
+      nome_completo: string
+      numero_cadastro: string
+    }
+  }
+}
+
+export const getEmprestimosByLivro = async (livroId: string): Promise<EmprestimoWithLeitor[]> => {
+  return await pb.collection('emprestimos').getFullList<EmprestimoWithLeitor>({
+    filter: `livro = "${livroId}"`,
+    sort: '-data_emprestimo',
+    expand: 'leitor',
+  })
+}
