@@ -100,6 +100,14 @@ export const createEmprestimo = async (data: CreateEmprestimoData): Promise<Empr
   })
 }
 
+export const getActiveEmprestimos = async (): Promise<EmprestimoWithLeitor[]> => {
+  return await pb.collection('emprestimos').getFullList<EmprestimoWithLeitor>({
+    filter: `status = "ativo" || status = "atrasado"`,
+    sort: 'data_prevista_devolucao',
+    expand: 'leitor,livro',
+  })
+}
+
 export const getActiveEmprestimoByLivroCadastro = async (
   numeroCadastro: string,
 ): Promise<EmprestimoWithLeitor> => {

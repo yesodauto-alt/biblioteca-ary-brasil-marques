@@ -1,112 +1,101 @@
-import { useState, useRef, useEffect } from 'react'
-import {
-  ArrowLeftRight,
-  BookOpen,
-  User,
-  CheckCircle2,
-  AlertCircle,
-  Calendar,
-  X,
-} from 'lucide-react'
-import { Checkbox } from '@/components/ui/checkbox'
-import { getErrorMessage } from '@/lib/pocketbase/errors'
-import { Button } from '@/components/ui/button'
+import { useState, useEffect, useMemo, useCallback } from 'react'
+import { ArrowLeftRight, Search, BookOpen, User, Calendar } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { useAuth } from '@/hooks/use-auth'
+import { Skeleton } from '@/components/ui/skeleton'
+import { LeitorFicha } from '@/components/usuarios/LeitorFicha'
+import { LivroFicha } from '@/components/acervo/LivroFicha'
+import { getActiveEmprestimos, type EmprestimoWithLeitor } from '@/services/emprestimos'
 import { useRealtime } from '@/hooks/use-realtime'
-import { type Leitor } from '@/services/leitores'
-import { getLivroByCadastro, updateLivroStatus, STATUS_LABELS, type Livro } from '@/services/livros'
-import { createEmprestimo, LOAN_PERIOD_DAYS } from '@/services/emprestimos'
-import { getConfiguracoes, type Configuracoes as ConfigType } from '@/services/configuracoes'
-import { LeitorSearch } from '@/components/usuarios/LeitorSearch'
+import {
+  getSituacao,
+  SITUACAO_LABELS,
+  SITUACAO_BADGE,
+  SITUACAO_PRIORITY,
+  formatDate,
+} from '@/lib/loan-utils'
 import { toast } from 'sonner'
+import { cn } from '@/lib/utils'
 
-function formatDate(dateStr: string): string {
-  if (!dateStr) return '—'
-  return new Date(dateStr + 'T00:00:00').toLocaleDateString('pt-BR')
-}
+type FilterType = 'todos' | 'em-dia' | 'vence-hoje' | 'atrasados' | 'comum' | 'estudo'
+
+const FILTERS: { label: string; value: FilterType }[] = [
+  { label: 'Todos', value: 'todos' },
+  { label: 'Em dia', value: 'em-dia' },
+  { label: 'Vence hoje', value: 'vence-hoje' },
+  { label: 'Atrasados', value: 'atrasados' },
+  { label: 'Comum', value: 'comum' },
+  { label: 'Estudo', value: 'estudo' },
+]
+
+const TIPO_LABELS: Record<string, string> = { comum: 'Comum', estudo: 'Estudo' }
 
 export default function Emprestimos() {
-  const { user } = useAuth()
-  const [foundLeitor, setFoundLeitor] = useState<Leitor | null>(null)
-  const [bookSearch, setBookSearch] = useState('')
-  const [foundLivro, setFoundLivro] = useState<Livro | null>(null)
-  const [bookError, setBookError] = useState<string | null>(null)
-  const [submitting, setSubmitting] = useState(false)
-  const [success, setSuccess] = useState<string | null>(null)
-  const [isEstudo, setIsEstudo] = useState(false)
-  const [blockMessage, setBlockMessage] = useState<string | null>(null)
-  const [config, setConfig] = useState<ConfigType | null>(null)
+  const [emprestimos, setEmprestimos] = useState<EmprestimoWithLeitor[]>([])
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState('')
+  const [filter, setFilter] = useState<FilterType>('todos')
+  const [leitorFichaId, setLeitorFichaId] = useState<string | null>(null)
+  const [leitorFichaOpen, setLeitorFichaOpen] = useState(false)
+  const [livroFichaId, setLivroFichaId] = useState<string | null>(null)
+  const [livroFichaOpen, setLivroFichaOpen] = useState(false)
 
-  const bookInputRef = useRef<HTMLInputElement>(null)
-  const confirmRef = useRef<HTMLButtonElement>(null)
-
-  useEffect(() => {
-    getConfiguracoes()
-      .then(setConfig)
-      .catch(() => {})
+  const loadData = useCallback(async () => {
+    try {
+      const data = await getActiveEmprestimos()
+      setEmprestimos(data)
+    } catch {
+      toast.error('Erro ao carregar empréstimos.')
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
-  useRealtime('emprestimos', () => {})
+  useEffect(() => {
+    loadData()
+  }, [loadData])
 
-  const handleLeitorSelected = (leitor: Leitor) => {
-    setFoundLeitor(leitor)
-    setSuccess(null)
-    setBlockMessage(null)
-    if (leitor.status === 'ativo') {
-      setTimeout(() => bookInputRef.current?.focus(), 100)
-    }
+  useRealtime('emprestimos', () => {
+    loadData()
+  })
+
+  const sorted = useMemo(() => {
+    return [...emprestimos].sort((a, b) => {
+      const sa = getSituacao(a.data_prevista_devolucao)
+      const sb = getSituacao(b.data_prevista_devolucao)
+      const pa = SITUACAO_PRIORITY[sa]
+      const pb = SITUACAO_PRIORITY[sb]
+      if (pa !== pb) return pa - pb
+      return a.data_prevista_devolucao.localeCompare(b.data_prevista_devolucao)
+    })
+  }, [emprestimos])
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    return sorted.filter((emp) => {
+      const situacao = getSituacao(emp.data_prevista_devolucao)
+      if (filter === 'em-dia' && situacao !== 'em-dia') return false
+      if (filter === 'vence-hoje' && situacao !== 'vence-hoje') return false
+      if (filter === 'atrasados' && situacao !== 'atrasado') return false
+      if (filter === 'comum' && (emp.tipo_emprestimo || 'comum') !== 'comum') return false
+      if (filter === 'estudo' && emp.tipo_emprestimo !== 'estudo') return false
+      if (!q) return true
+      const nome = emp.expand?.leitor?.nome_completo?.toLowerCase() || ''
+      const numLeitor = emp.expand?.leitor?.numero_cadastro?.toLowerCase() || ''
+      const titulo = emp.expand?.livro?.titulo?.toLowerCase() || ''
+      const numLivro = emp.expand?.livro?.numero_cadastro?.toLowerCase() || ''
+      return nome.includes(q) || numLeitor.includes(q) || titulo.includes(q) || numLivro.includes(q)
+    })
+  }, [sorted, search, filter])
+
+  const openLeitor = (id: string) => {
+    setLeitorFichaId(id)
+    setLeitorFichaOpen(true)
   }
 
-  const handleBookLookup = async () => {
-    const num = bookSearch.trim()
-    if (!num) return
-    setFoundLivro(null)
-    setBookError(null)
-    try {
-      const livro = await getLivroByCadastro(num)
-      setFoundLivro(livro)
-      if (livro.status !== 'disponível') {
-        setBookError(`Livro indisponível. Status atual: ${STATUS_LABELS[livro.status]}.`)
-        return
-      }
-      confirmRef.current?.focus()
-    } catch {
-      setBookError('Livro não encontrado com o número informado.')
-    }
-  }
-
-  const canConfirm =
-    foundLeitor?.status === 'ativo' && foundLivro?.status === 'disponível' && !submitting && !!user
-
-  const handleConfirm = async () => {
-    if (!foundLeitor || !foundLivro || !user || !canConfirm) return
-    setSubmitting(true)
-    setBlockMessage(null)
-    try {
-      const emp = await createEmprestimo({
-        leitor: foundLeitor.id,
-        livro: foundLivro.id,
-        responsavel: user.id,
-        tipo_emprestimo: isEstudo ? 'estudo' : 'comum',
-      })
-      await updateLivroStatus(foundLivro.id, 'emprestado')
-      setSuccess(
-        `Empréstimo realizado com sucesso. Devolução prevista: ${formatDate(emp.data_prevista_devolucao)}.`,
-      )
-      setFoundLeitor(null)
-      setBookSearch('')
-      setFoundLivro(null)
-      setBookError(null)
-      setIsEstudo(false)
-    } catch (err) {
-      const msg = getErrorMessage(err)
-      setBlockMessage(msg)
-      toast.error(msg)
-    } finally {
-      setSubmitting(false)
-    }
+  const openLivro = (id: string) => {
+    setLivroFichaId(id)
+    setLivroFichaOpen(true)
   }
 
   return (
@@ -117,155 +106,133 @@ export default function Emprestimos() {
         </div>
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Empréstimos</h2>
-          <p className="text-base text-gray-500">Registro rápido de empréstimos</p>
+          <p className="text-base text-gray-500">Empréstimos ativos da biblioteca</p>
         </div>
       </div>
 
-      {success && (
-        <div className="bg-green-50 border border-green-300 rounded-xl p-4 flex items-start gap-3 animate-fade-in">
-          <CheckCircle2 className="w-6 h-6 text-green-600 shrink-0 mt-0.5" />
-          <p className="text-lg font-semibold text-green-800">{success}</p>
-        </div>
-      )}
+      <div className="relative">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400" />
+        <Input
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Buscar por usuário, número, livro..."
+          className="h-14 pl-14 text-base font-medium border-gray-300"
+        />
+      </div>
 
-      {blockMessage && (
-        <div className="bg-red-50 border-2 border-red-400 rounded-xl p-4 flex items-start gap-3 animate-fade-in">
-          <AlertCircle className="w-7 h-7 text-red-600 shrink-0 mt-0.5" />
-          <p className="text-lg font-bold text-red-800">{blockMessage}</p>
-        </div>
-      )}
+      <div className="flex flex-wrap gap-2">
+        {FILTERS.map((f) => (
+          <button
+            key={f.value}
+            onClick={() => setFilter(f.value)}
+            className={cn(
+              'px-4 py-2 rounded-full text-base font-semibold transition-colors',
+              filter === f.value
+                ? 'bg-[#1F5C8B] text-white'
+                : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
+            )}
+          >
+            {f.label}
+          </button>
+        ))}
+      </div>
 
-      <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-6">
-        <div className="space-y-2">
-          <label className="text-lg font-bold text-gray-800">Usuário</label>
-          {!foundLeitor ? (
-            <LeitorSearch onLeitorSelected={handleLeitorSelected} />
-          ) : (
-            <div className="bg-[#1F5C8B]/5 border border-[#1F5C8B]/20 rounded-lg p-4 space-y-2">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <User className="w-5 h-5 text-[#1F5C8B]" />
-                  <span className="text-lg font-bold text-gray-900">
-                    {foundLeitor.nome_completo}
-                  </span>
-                  <Badge
-                    className={
-                      foundLeitor.status === 'ativo'
-                        ? 'bg-green-100 text-green-800 hover:bg-green-100'
-                        : 'bg-gray-200 text-gray-700 hover:bg-gray-200'
-                    }
-                  >
-                    {foundLeitor.status === 'ativo' ? 'Ativo' : 'Inativo'}
-                  </Badge>
+      {loading ? (
+        <div className="space-y-3">
+          {Array.from({ length: 5 }).map((_, i) => (
+            <Skeleton key={i} className="h-32 w-full rounded-lg" />
+          ))}
+        </div>
+      ) : filtered.length === 0 ? (
+        <div className="text-center py-16">
+          <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
+          <p className="text-lg font-semibold text-gray-600">
+            {search || filter !== 'todos'
+              ? 'Nenhum empréstimo encontrado.'
+              : 'Nenhum empréstimo ativo.'}
+          </p>
+        </div>
+      ) : (
+        <div className="space-y-3">
+          {filtered.map((emp) => {
+            const situacao = getSituacao(emp.data_prevista_devolucao)
+            const tipo = TIPO_LABELS[emp.tipo_emprestimo || 'comum'] || 'Comum'
+            return (
+              <div
+                key={emp.id}
+                className={cn(
+                  'bg-white border rounded-xl p-5 transition-colors',
+                  situacao === 'atrasado'
+                    ? 'border-red-300 bg-red-50/30'
+                    : situacao === 'vence-hoje'
+                      ? 'border-yellow-300 bg-yellow-50/30'
+                      : 'border-gray-200',
+                )}
+              >
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
+                    <button
+                      onClick={() => emp.expand?.leitor && openLeitor(emp.expand.leitor.id)}
+                      className="flex items-start gap-3 text-left hover:opacity-80 transition-opacity flex-1"
+                    >
+                      <User className="w-6 h-6 text-[#1F5C8B] shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-lg font-bold text-gray-900 break-words">
+                          {emp.expand?.leitor?.nome_completo || 'Leitor não encontrado'}
+                        </p>
+                        <p className="text-base text-gray-600">
+                          Nº {emp.expand?.leitor?.numero_cadastro || '—'}
+                        </p>
+                      </div>
+                    </button>
+                    <button
+                      onClick={() => emp.expand?.livro && openLivro(emp.expand.livro.id)}
+                      className="flex items-start gap-3 text-left hover:opacity-80 transition-opacity flex-1"
+                    >
+                      <BookOpen className="w-6 h-6 text-[#1F5C8B] shrink-0 mt-0.5" />
+                      <div>
+                        <p className="text-lg font-bold text-gray-900 break-words">
+                          {emp.expand?.livro?.titulo || 'Livro não encontrado'}
+                        </p>
+                        <p className="text-base text-gray-600">
+                          Nº {emp.expand?.livro?.numero_cadastro || '—'}
+                        </p>
+                      </div>
+                    </button>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-3 pt-3 border-t border-gray-100">
+                    <Badge
+                      className={cn(
+                        emp.tipo_emprestimo === 'estudo'
+                          ? 'bg-purple-100 text-purple-800 hover:bg-purple-100'
+                          : 'bg-blue-100 text-blue-800 hover:bg-blue-100',
+                      )}
+                    >
+                      {tipo}
+                    </Badge>
+                    <div className="flex items-center gap-1.5 text-base text-gray-600">
+                      <Calendar className="w-4 h-4" />
+                      <span>Empréstimo: {formatDate(emp.data_emprestimo)}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-base text-gray-600">
+                      <Calendar className="w-4 h-4" />
+                      <span>Devolução: {formatDate(emp.data_prevista_devolucao)}</span>
+                    </div>
+                    <Badge className={SITUACAO_BADGE[situacao]}>{SITUACAO_LABELS[situacao]}</Badge>
+                  </div>
                 </div>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setFoundLeitor(null)}
-                  className="text-gray-500 hover:text-gray-700"
-                >
-                  <X className="w-5 h-5" />
-                </Button>
               </div>
-              <p className="text-base text-gray-600">Nº {foundLeitor.numero_cadastro}</p>
-              {foundLeitor.telefone && (
-                <p className="text-base text-gray-600">{foundLeitor.telefone}</p>
-              )}
-              {foundLeitor.status === 'inativo' && (
-                <p className="text-base font-semibold text-red-600">
-                  Este usuário está inativo. Empréstimo não permitido.
-                </p>
-              )}
-            </div>
-          )}
+            )
+          })}
         </div>
+      )}
 
-        <div className="space-y-2">
-          <label className="text-lg font-bold text-gray-800">Número do livro</label>
-          <Input
-            ref={bookInputRef}
-            value={bookSearch}
-            onChange={(e) => {
-              setBookSearch(e.target.value)
-              setFoundLivro(null)
-              setBookError(null)
-              setBlockMessage(null)
-            }}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
-                e.preventDefault()
-                handleBookLookup()
-              }
-            }}
-            placeholder="Digite o número e pressione ENTER..."
-            className="h-14 text-lg font-medium border-gray-300"
-          />
-          {bookError && (
-            <div className="flex items-center gap-2 text-red-600">
-              <AlertCircle className="w-5 h-5" />
-              <span className="font-semibold">{bookError}</span>
-            </div>
-          )}
-          {foundLivro && (
-            <div className="bg-[#1F5C8B]/5 border border-[#1F5C8B]/20 rounded-lg p-4 space-y-2">
-              <div className="flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-[#1F5C8B]" />
-                <span className="text-lg font-bold text-gray-900">{foundLivro.titulo}</span>
-                <Badge
-                  className={
-                    foundLivro.status === 'disponível'
-                      ? 'bg-green-100 text-green-800 hover:bg-green-100'
-                      : 'bg-red-100 text-red-800 hover:bg-red-100'
-                  }
-                >
-                  {STATUS_LABELS[foundLivro.status]}
-                </Badge>
-              </div>
-              <p className="text-base text-gray-600">
-                {foundLivro.autor} — Nº {foundLivro.numero_cadastro}
-              </p>
-            </div>
-          )}
-        </div>
-
-        <div className="bg-[#1F5C8B]/5 border-2 border-[#1F5C8B]/30 rounded-xl p-4">
-          <label className="flex items-center gap-4 cursor-pointer select-none">
-            <Checkbox
-              checked={isEstudo}
-              onCheckedChange={(checked) => {
-                setIsEstudo(checked === true)
-                setBlockMessage(null)
-              }}
-              className="w-8 h-8 border-2 border-[#1F5C8B]"
-            />
-            <div>
-              <span className="text-xl font-bold text-gray-900">Estudo</span>
-              <p className="text-base text-gray-600">
-                Marque para empréstimo de estudo (90 dias de prazo)
-              </p>
-            </div>
-          </label>
-        </div>
-
-        <div className="flex items-center gap-2 text-base text-gray-500 flex-wrap">
-          <Calendar className="w-5 h-5" />
-          <span>
-            Prazo de devolução: {isEstudo ? 90 : (config?.prazo_devolucao_dias ?? LOAN_PERIOD_DAYS)}{' '}
-            dias
-          </span>
-          <span className="ml-4">Limite: 1 livro comum + 1 livro de estudo</span>
-        </div>
-
-        <Button
-          ref={confirmRef}
-          onClick={handleConfirm}
-          disabled={!canConfirm}
-          className="w-full h-16 text-xl font-bold bg-[#1F5C8B] hover:bg-[#174A73] disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          <CheckCircle2 className="w-7 h-7 mr-2" />
-          Confirmar empréstimo
-        </Button>
-      </div>
+      <LeitorFicha
+        leitorId={leitorFichaId}
+        open={leitorFichaOpen}
+        onOpenChange={setLeitorFichaOpen}
+      />
+      <LivroFicha livroId={livroFichaId} open={livroFichaOpen} onOpenChange={setLivroFichaOpen} />
     </div>
   )
 }
