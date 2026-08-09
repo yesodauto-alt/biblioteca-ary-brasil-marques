@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-09T18:41:12.079Z",
+  "generatedAt": "2026-08-09T18:45:12.328Z",
   "collections": [
     {
       "name": "users",
@@ -134,7 +134,9 @@
       ],
       "indexes": [
         "CREATE UNIQUE INDEX idx_leitores_numero_cadastro ON leitores (numero_cadastro)",
-        "CREATE INDEX idx_leitores_status ON leitores (status)"
+        "CREATE INDEX idx_leitores_status ON leitores (status)",
+        "CREATE INDEX `idx_leitores_nome_completo` ON `leitores` (nome_completo)",
+        "CREATE INDEX `idx_leitores_telefone` ON `leitores` (telefone)"
       ]
     },
     {
