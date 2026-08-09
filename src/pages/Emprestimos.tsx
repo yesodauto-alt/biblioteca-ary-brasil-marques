@@ -14,6 +14,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { useAuth } from '@/hooks/use-auth'
+import { useRealtime } from '@/hooks/use-realtime'
 import { type Leitor } from '@/services/leitores'
 import { getLivroByCadastro, updateLivroStatus, STATUS_LABELS, type Livro } from '@/services/livros'
 import { createEmprestimo, LOAN_PERIOD_DAYS } from '@/services/emprestimos'
@@ -47,6 +48,8 @@ export default function Emprestimos() {
       .catch(() => {})
   }, [])
 
+  useRealtime('emprestimos', () => {})
+
   const handleLeitorSelected = (leitor: Leitor) => {
     setFoundLeitor(leitor)
     setSuccess(null)
@@ -75,7 +78,7 @@ export default function Emprestimos() {
   }
 
   const canConfirm =
-    foundLeitor?.status === 'ativo' && foundLivro?.status === 'disponível' && !submitting
+    foundLeitor?.status === 'ativo' && foundLivro?.status === 'disponível' && !submitting && !!user
 
   const handleConfirm = async () => {
     if (!foundLeitor || !foundLivro || !user || !canConfirm) return

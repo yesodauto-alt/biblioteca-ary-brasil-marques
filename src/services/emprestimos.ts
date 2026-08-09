@@ -82,38 +82,6 @@ export const createEmprestimo = async (data: CreateEmprestimoData): Promise<Empr
     loanPeriod = 90
   }
 
-  const activeLoans = await pb.collection('emprestimos').getFullList({
-    filter: `leitor = "${data.leitor}" && (status = "ativo" || status = "atrasado")`,
-  })
-
-  let comumCount = 0
-  let estudoCount = 0
-  for (const loan of activeLoans) {
-    const loanTipo = (loan as { tipo_emprestimo?: string }).tipo_emprestimo || 'comum'
-    if (loanTipo === 'estudo') estudoCount++
-    else comumCount++
-  }
-
-  const total = comumCount + estudoCount
-
-  if (total >= 2) {
-    throw new Error(
-      'Este usuário já atingiu o limite de empréstimos: 1 livro comum e 1 livro de estudo.',
-    )
-  }
-
-  if (tipo === 'comum' && comumCount >= 1) {
-    throw new Error(
-      'Este usuário já possui um livro comum emprestado. É permitido apenas um livro de estudo adicional.',
-    )
-  }
-
-  if (tipo === 'estudo' && estudoCount >= 1) {
-    throw new Error(
-      'Este usuário já possui um livro de estudo emprestado. É permitido apenas um livro comum.',
-    )
-  }
-
   const today = new Date()
   const returnDate = new Date()
   returnDate.setDate(returnDate.getDate() + loanPeriod)
@@ -125,6 +93,7 @@ export const createEmprestimo = async (data: CreateEmprestimoData): Promise<Empr
     livro: data.livro,
     data_emprestimo: toDateStr(today),
     data_prevista_devolucao: toDateStr(returnDate),
+    data_devolucao_real: '',
     status: 'ativo',
     quantidade_renovacoes: 0,
     responsavel: data.responsavel,
