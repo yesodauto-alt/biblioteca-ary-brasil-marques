@@ -14,6 +14,7 @@ import Emprestimos from '@/pages/Emprestimos'
 import Devolucao from '@/pages/Devolucao'
 import Relatorios from '@/pages/Relatorios'
 import Configuracoes from '@/pages/Configuracoes'
+import Cursos from '@/pages/Cursos'
 import Importacao from '@/pages/Importacao'
 import NotFound from '@/pages/NotFound'
 
@@ -39,6 +40,7 @@ const App = () => (
             <Route path="/emprestimos" element={<Emprestimos />} />
             <Route path="/devolucao" element={<Devolucao />} />
             <Route path="/relatorios" element={<Relatorios />} />
+            <Route path="/cursos" element={<Cursos />} />
             <Route
               path="/configuracoes"
               element={

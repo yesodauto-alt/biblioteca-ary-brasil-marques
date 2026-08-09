@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-09T19:55:38.245Z",
+  "generatedAt": "2026-08-09T20:11:55.534Z",
   "collections": [
     {
       "name": "users",
@@ -451,6 +451,92 @@
         }
       ],
       "indexes": []
+    },
+    {
+      "name": "cursos",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != ''",
+        "view": "@request.auth.id != ''",
+        "create": "@request.auth.id != ''",
+        "update": "@request.auth.id != ''",
+        "delete": "@request.auth.id != ''"
+      },
+      "fields": [
+        {
+          "name": "nome",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "ano_nivel_etapa",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": ["CREATE INDEX idx_cursos_nome ON cursos (nome)"]
+    },
+    {
+      "name": "cursos_livros",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != ''",
+        "view": "@request.auth.id != ''",
+        "create": "@request.auth.id != ''",
+        "update": "@request.auth.id != ''",
+        "delete": "@request.auth.id != ''"
+      },
+      "fields": [
+        {
+          "name": "curso",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "cursos"
+        },
+        {
+          "name": "livro",
+          "type": "relation",
+          "required": true,
+          "system": false,
+          "collectionRef": "livros"
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE INDEX idx_cursos_livros_curso ON cursos_livros (curso)",
+        "CREATE INDEX idx_cursos_livros_livro ON cursos_livros (livro)",
+        "CREATE UNIQUE INDEX idx_cursos_livros_unique ON cursos_livros (curso, livro)"
+      ]
     }
   ]
 }

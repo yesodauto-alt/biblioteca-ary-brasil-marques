@@ -13,6 +13,7 @@ import {
   BookMarked,
   CornerUpLeft,
   Upload,
+  GraduationCap,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
@@ -25,6 +26,7 @@ const NAV_ITEMS = [
   { path: '/emprestimos', label: 'Empréstimos', icon: ArrowLeftRight },
   { path: '/devolucao', label: 'Devolução', icon: CornerUpLeft },
   { path: '/relatorios', label: 'Relatórios', icon: BarChart3 },
+  { path: '/cursos', label: 'Cursos e Livros', icon: GraduationCap },
   { path: '/importacao', label: 'Importação', icon: Upload },
   { path: '/configuracoes', label: 'Configurações', icon: Settings },
 ]
