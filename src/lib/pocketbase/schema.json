@@ -1,15 +1,15 @@
 {
-  "generatedAt": "2026-08-09T19:33:00.628Z",
+  "generatedAt": "2026-08-09T19:43:22.983Z",
   "collections": [
     {
       "name": "users",
       "type": "auth",
       "apiRules": {
-        "list": "id = @request.auth.id",
-        "view": "id = @request.auth.id",
-        "create": "",
-        "update": "id = @request.auth.id",
-        "delete": "id = @request.auth.id"
+        "list": "id = @request.auth.id || @request.auth.role = 'administrador'",
+        "view": "id = @request.auth.id || @request.auth.role = 'administrador'",
+        "create": "@request.auth.role = 'administrador'",
+        "update": "id = @request.auth.id || @request.auth.role = 'administrador'",
+        "delete": "id = @request.auth.id || @request.auth.role = 'administrador'"
       },
       "fields": [
         {
@@ -44,6 +44,13 @@
           "required": true,
           "system": false,
           "selectValues": ["administrador", "voluntário"]
+        },
+        {
+          "name": "status",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["ativo", "inativo"]
         }
       ],
       "indexes": [
@@ -379,11 +386,11 @@
       "name": "configuracoes",
       "type": "base",
       "apiRules": {
-        "list": "@request.auth.id != ''",
-        "view": "@request.auth.id != ''",
-        "create": "@request.auth.id != ''",
-        "update": "@request.auth.id != ''",
-        "delete": "@request.auth.id != ''"
+        "list": "@request.auth.role = 'administrador'",
+        "view": "@request.auth.role = 'administrador'",
+        "create": "@request.auth.role = 'administrador'",
+        "update": "@request.auth.role = 'administrador'",
+        "delete": "@request.auth.role = 'administrador'"
       },
       "fields": [
         {
@@ -411,6 +418,36 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
+        },
+        {
+          "name": "limite_livros_por_usuario",
+          "type": "number",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "nome_biblioteca",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "telefone",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "email",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "informacoes_institucionais",
+          "type": "text",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": []

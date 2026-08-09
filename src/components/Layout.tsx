@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Outlet, NavLink, useLocation } from 'react-router-dom'
 import {
   Home,
@@ -15,6 +15,7 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
+import { getConfiguracoes } from '@/services/configuracoes'
 
 const NAV_ITEMS = [
   { path: '/', label: 'Início', icon: Home },
@@ -30,8 +31,19 @@ export default function Layout() {
   const { user, signOut } = useAuth()
   const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const isAdmin = user?.role === 'administrador'
+  const [libraryName, setLibraryName] = useState('Centro Espírita')
 
-  const currentPage = NAV_ITEMS.find((item) => item.path === location.pathname)
+  useEffect(() => {
+    getConfiguracoes()
+      .then((c) => {
+        if (c?.nome_biblioteca) setLibraryName(c.nome_biblioteca)
+      })
+      .catch(() => {})
+  }, [])
+
+  const visibleNavItems = NAV_ITEMS.filter((item) => item.path !== '/configuracoes' || isAdmin)
+  const currentPage = visibleNavItems.find((item) => item.path === location.pathname)
   const currentTitle = currentPage ? currentPage.label : 'Início'
   const volunteerName = user?.name || user?.email || 'Voluntário'
 
@@ -101,15 +113,13 @@ export default function Layout() {
                 <span className="text-xs uppercase tracking-wider font-extrabold text-[#1F5C8B]">
                   ERP Biblioteca
                 </span>
-                <span className="text-lg font-bold text-gray-900 leading-tight">
-                  Centro Espírita
-                </span>
+                <span className="text-lg font-bold text-gray-900 leading-tight">{libraryName}</span>
               </div>
             </div>
 
             {/* Menu Items List */}
             <nav className="space-y-2">
-              {NAV_ITEMS.map((item) => {
+              {visibleNavItems.map((item) => {
                 const Icon = item.icon
                 return (
                   <NavLink
@@ -148,7 +158,7 @@ export default function Layout() {
 
       {/* Subtle Footer */}
       <footer className="bg-white border-t border-[#D4D4D4] py-4 px-6 text-center text-sm text-[#4A4A4A]">
-        Biblioteca do Centro Espírita — {new Date().getFullYear()}
+        {libraryName} — {new Date().getFullYear()}
       </footer>
     </div>
   )

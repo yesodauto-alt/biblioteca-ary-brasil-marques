@@ -57,6 +57,7 @@ export const getEmprestimosByLivro = async (livroId: string): Promise<Emprestimo
 }
 
 export const LOAN_PERIOD_DAYS = 15
+export const DEFAULT_MAX_BOOKS = 3
 
 export interface CreateEmprestimoData {
   leitor: string
@@ -66,11 +67,22 @@ export interface CreateEmprestimoData {
 
 export const createEmprestimo = async (data: CreateEmprestimoData): Promise<Emprestimo> => {
   let loanPeriod = LOAN_PERIOD_DAYS
+  let maxBooks = DEFAULT_MAX_BOOKS
   try {
     const config = await getConfiguracoes()
     if (config?.prazo_devolucao_dias) loanPeriod = config.prazo_devolucao_dias
+    if (config?.limite_livros_por_usuario) maxBooks = config.limite_livros_por_usuario
   } catch {
     /* intentionally ignored */
+  }
+
+  const activeLoans = await pb.collection('emprestimos').getFullList({
+    filter: `leitor = "${data.leitor}" && (status = "ativo" || status = "atrasado")`,
+  })
+  if (activeLoans.length >= maxBooks) {
+    throw new Error(
+      `O leitor já possui o máximo de ${maxBooks} livros emprestados simultaneamente.`,
+    )
   }
 
   const today = new Date()

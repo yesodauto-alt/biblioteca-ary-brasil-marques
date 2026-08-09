@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { ArrowLeftRight, BookOpen, User, CheckCircle2, AlertCircle, Calendar } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/use-auth'
 import { getLeitorByCadastro, type Leitor } from '@/services/leitores'
 import { getLivroByCadastro, updateLivroStatus, STATUS_LABELS, type Livro } from '@/services/livros'
 import { createEmprestimo, LOAN_PERIOD_DAYS } from '@/services/emprestimos'
+import { getConfiguracoes, type Configuracoes as ConfigType } from '@/services/configuracoes'
 import { toast } from 'sonner'
 
 function formatDate(dateStr: string): string {
@@ -28,6 +29,13 @@ export default function Emprestimos() {
   const userInputRef = useRef<HTMLInputElement>(null)
   const bookInputRef = useRef<HTMLInputElement>(null)
   const confirmRef = useRef<HTMLButtonElement>(null)
+  const [config, setConfig] = useState<ConfigType | null>(null)
+
+  useEffect(() => {
+    getConfiguracoes()
+      .then(setConfig)
+      .catch(() => {})
+  }, [])
 
   const handleUserLookup = async () => {
     const num = userSearch.trim()
@@ -88,8 +96,12 @@ export default function Emprestimos() {
       setUserError(null)
       setBookError(null)
       setTimeout(() => userInputRef.current?.focus(), 100)
-    } catch {
-      toast.error('Erro ao registrar empréstimo. Tente novamente.')
+    } catch (err: any) {
+      if (err?.response) {
+        toast.error('Erro ao registrar empréstimo. Tente novamente.')
+      } else {
+        toast.error(err?.message || 'Erro ao registrar empréstimo. Tente novamente.')
+      }
     } finally {
       setSubmitting(false)
     }
@@ -213,9 +225,14 @@ export default function Emprestimos() {
           )}
         </div>
 
-        <div className="flex items-center gap-2 text-base text-gray-500">
+        <div className="flex items-center gap-2 text-base text-gray-500 flex-wrap">
           <Calendar className="w-5 h-5" />
-          <span>Prazo de devolução: {LOAN_PERIOD_DAYS} dias</span>
+          <span>Prazo de devolução: {config?.prazo_devolucao_dias ?? LOAN_PERIOD_DAYS} dias</span>
+          {config?.limite_livros_por_usuario && (
+            <span className="ml-4">
+              Máximo de {config.limite_livros_por_usuario} livros simultâneos
+            </span>
+          )}
         </div>
 
         <Button

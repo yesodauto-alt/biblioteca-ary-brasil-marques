@@ -33,7 +33,10 @@ export default function Login() {
     const { error } = await signIn(email, password)
 
     if (error) {
-      setErrorMessage('E-mail ou senha incorretos. Tente novamente.')
+      const msg = error?.message || ''
+      setErrorMessage(
+        msg.includes('inativa') ? msg : 'E-mail ou senha incorretos. Tente novamente.',
+      )
       setIsSubmitting(false)
     } else {
       navigate('/')

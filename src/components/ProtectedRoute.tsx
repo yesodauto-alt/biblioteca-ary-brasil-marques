@@ -2,8 +2,14 @@ import { ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
 
-export function ProtectedRoute({ children }: { children: ReactNode }) {
-  const { isAuthenticated, loading } = useAuth()
+export function ProtectedRoute({
+  children,
+  requiredRole,
+}: {
+  children: ReactNode
+  requiredRole?: string
+}) {
+  const { isAuthenticated, loading, user } = useAuth()
 
   if (loading) {
     return (
@@ -18,6 +24,10 @@ export function ProtectedRoute({ children }: { children: ReactNode }) {
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />
+  }
+
+  if (requiredRole && user?.role !== requiredRole) {
+    return <Navigate to="/" replace />
   }
 
   return <>{children}</>

@@ -4,6 +4,7 @@ import pb from '@/lib/pocketbase/client'
 interface AuthContextType {
   user: any
   isAuthenticated: boolean
+  isAdmin: boolean
   signIn: (email: string, password: string) => Promise<{ error: any }>
   signOut: () => void
   loading: boolean
@@ -21,6 +22,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<any>(pb.authStore.isValid ? pb.authStore.record : null)
   const [isAuthenticated, setIsAuthenticated] = useState(pb.authStore.isValid)
   const [loading, setLoading] = useState(true)
+
+  const isAdmin = user?.role === 'administrador'
 
   useEffect(() => {
     const unsubscribe = pb.authStore.onChange((_token, record) => {
@@ -45,7 +48,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signIn = async (email: string, password: string) => {
     try {
-      await pb.collection('users').authWithPassword(email, password)
+      const result = await pb.collection('users').authWithPassword(email, password)
+      if (result.record?.status === 'inativo') {
+        pb.authStore.clear()
+        return { error: { message: 'Sua conta está inativa. Contate o administrador.' } }
+      }
       return { error: null }
     } catch (error) {
       return { error }
@@ -61,6 +68,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       value={{
         user,
         isAuthenticated,
+        isAdmin,
         signIn,
         signOut,
         loading,
