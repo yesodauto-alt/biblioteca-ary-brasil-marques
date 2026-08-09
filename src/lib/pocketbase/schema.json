@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-09T19:15:27.902Z",
+  "generatedAt": "2026-08-09T19:33:00.628Z",
   "collections": [
     {
       "name": "users",
@@ -305,7 +305,10 @@
         "CREATE INDEX idx_emprestimos_livro ON emprestimos (livro)",
         "CREATE INDEX idx_emprestimos_responsavel ON emprestimos (responsavel)",
         "CREATE INDEX idx_emprestimos_status ON emprestimos (status)",
-        "CREATE INDEX idx_emprestimos_created ON emprestimos (created)"
+        "CREATE INDEX idx_emprestimos_created ON emprestimos (created)",
+        "CREATE INDEX `idx_emprestimos_data_emprestimo` ON `emprestimos` (data_emprestimo)",
+        "CREATE INDEX `idx_emprestimos_data_prevista` ON `emprestimos` (data_prevista_devolucao)",
+        "CREATE INDEX `idx_emprestimos_data_devolucao` ON `emprestimos` (data_devolucao_real)"
       ]
     },
     {
@@ -366,7 +369,11 @@
           "autodateTriggers": ["onCreate"]
         }
       ],
-      "indexes": ["CREATE INDEX idx_auditoria_usuario ON auditoria (usuario)"]
+      "indexes": [
+        "CREATE INDEX idx_auditoria_usuario ON auditoria (usuario)",
+        "CREATE INDEX `idx_auditoria_acao` ON `auditoria` (acao)",
+        "CREATE INDEX `idx_auditoria_created` ON `auditoria` (created)"
+      ]
     },
     {
       "name": "configuracoes",
