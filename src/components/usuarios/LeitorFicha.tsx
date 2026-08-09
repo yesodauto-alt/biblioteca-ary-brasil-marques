@@ -1,10 +1,12 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { BookOpen, Calendar, Mail, MapPin, Phone, StickyNote, User } from 'lucide-react'
 import { getLeitor, type Leitor } from '@/services/leitores'
 import { getEmprestimosByLeitor, type Emprestimo } from '@/services/emprestimos'
+import { useRealtime } from '@/hooks/use-realtime'
+import { cn } from '@/lib/utils'
 
 interface LeitorFichaProps {
   leitorId: string | null
@@ -18,12 +20,31 @@ function formatDate(dateStr: string): string {
   return date.toLocaleDateString('pt-BR')
 }
 
+function getSituacao(dataPrevista: string): string {
+  if (!dataPrevista) return 'Em dia'
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const previsto = new Date(dataPrevista + 'T00:00:00')
+  previsto.setHours(0, 0, 0, 0)
+  if (today < previsto) return 'Em dia'
+  if (today.getTime() === previsto.getTime()) return 'Vence hoje'
+  return 'Atrasado'
+}
+
+const SITUACAO_BADGE: Record<string, string> = {
+  'Em dia': 'bg-green-100 text-green-800 hover:bg-green-100',
+  'Vence hoje': 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100',
+  Atrasado: 'bg-red-100 text-red-800 hover:bg-red-100',
+}
+
+const TIPO_LABELS: Record<string, string> = { comum: 'Comum', estudo: 'Estudo' }
+
 export function LeitorFicha({ leitorId, open, onOpenChange }: LeitorFichaProps) {
   const [leitor, setLeitor] = useState<Leitor | null>(null)
   const [emprestimos, setEmprestimos] = useState<Emprestimo[]>([])
   const [loading, setLoading] = useState(false)
 
-  useEffect(() => {
+  const loadData = useCallback(() => {
     if (!leitorId) {
       setLeitor(null)
       setEmprestimos([])
@@ -38,7 +59,20 @@ export function LeitorFicha({ leitorId, open, onOpenChange }: LeitorFichaProps) 
       .finally(() => setLoading(false))
   }, [leitorId])
 
-  const activeLoans = emprestimos.filter((e) => e.status === 'ativo')
+  useEffect(() => {
+    loadData()
+  }, [loadData])
+  useRealtime(
+    'emprestimos',
+    () => {
+      loadData()
+    },
+    open,
+  )
+
+  const activeLoans = emprestimos.filter((e) => e.status === 'ativo' && !e.data_devolucao_real)
+  const comumCount = activeLoans.filter((e) => (e.tipo_emprestimo || 'comum') === 'comum').length
+  const estudoCount = activeLoans.filter((e) => e.tipo_emprestimo === 'estudo').length
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -56,7 +90,6 @@ export function LeitorFicha({ leitorId, open, onOpenChange }: LeitorFichaProps) 
           </div>
         ) : leitor ? (
           <div className="mt-6 space-y-6">
-            {/* Header info */}
             <div className="bg-[#1F5C8B]/5 rounded-xl p-4 border border-[#1F5C8B]/20">
               <h2 className="text-2xl font-bold text-gray-900 break-words">
                 {leitor.nome_completo}
@@ -77,7 +110,6 @@ export function LeitorFicha({ leitorId, open, onOpenChange }: LeitorFichaProps) 
               </div>
             </div>
 
-            {/* Contact info */}
             <div className="space-y-3">
               <div className="flex items-start gap-3">
                 <Phone className="w-5 h-5 text-[#1F5C8B] shrink-0 mt-0.5" />
@@ -86,7 +118,6 @@ export function LeitorFicha({ leitorId, open, onOpenChange }: LeitorFichaProps) 
                   <p className="text-base font-semibold text-gray-900">{leitor.telefone}</p>
                 </div>
               </div>
-
               {leitor.email && (
                 <div className="flex items-start gap-3">
                   <Mail className="w-5 h-5 text-[#1F5C8B] shrink-0 mt-0.5" />
@@ -98,7 +129,6 @@ export function LeitorFicha({ leitorId, open, onOpenChange }: LeitorFichaProps) 
                   </div>
                 </div>
               )}
-
               {leitor.data_nascimento && (
                 <div className="flex items-start gap-3">
                   <Calendar className="w-5 h-5 text-[#1F5C8B] shrink-0 mt-0.5" />
@@ -110,7 +140,6 @@ export function LeitorFicha({ leitorId, open, onOpenChange }: LeitorFichaProps) 
                   </div>
                 </div>
               )}
-
               {leitor.endereco && (
                 <div className="flex items-start gap-3">
                   <MapPin className="w-5 h-5 text-[#1F5C8B] shrink-0 mt-0.5" />
@@ -120,7 +149,6 @@ export function LeitorFicha({ leitorId, open, onOpenChange }: LeitorFichaProps) 
                   </div>
                 </div>
               )}
-
               <div className="flex items-start gap-3">
                 <User className="w-5 h-5 text-[#1F5C8B] shrink-0 mt-0.5" />
                 <div>
@@ -130,7 +158,6 @@ export function LeitorFicha({ leitorId, open, onOpenChange }: LeitorFichaProps) 
                   </p>
                 </div>
               </div>
-
               {leitor.observacoes && (
                 <div className="flex items-start gap-3">
                   <StickyNote className="w-5 h-5 text-[#1F5C8B] shrink-0 mt-0.5" />
@@ -144,35 +171,61 @@ export function LeitorFicha({ leitorId, open, onOpenChange }: LeitorFichaProps) 
               )}
             </div>
 
-            {/* Active loans */}
             <div>
               <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
                 <BookOpen className="w-5 h-5 text-[#1F5C8B]" />
-                Livros Atualmente Emprestados
+                Empréstimos ativos
               </h3>
               {activeLoans.length === 0 ? (
                 <p className="text-base text-gray-500 italic">
                   Nenhum livro emprestado no momento.
                 </p>
               ) : (
-                <div className="space-y-2">
-                  {activeLoans.map((emp) => (
-                    <div key={emp.id} className="bg-white border border-gray-200 rounded-lg p-3">
-                      <p className="text-base font-semibold text-gray-900">
-                        {emp.expand?.livro?.titulo || 'Livro não encontrado'}
-                      </p>
-                      <p className="text-sm text-gray-500">{emp.expand?.livro?.autor || ''}</p>
-                      <div className="flex gap-4 mt-1 text-sm text-gray-600">
-                        <span>Empréstimo: {formatDate(emp.data_emprestimo)}</span>
-                        <span>Devolução prevista: {formatDate(emp.data_prevista_devolucao)}</span>
+                <div className="space-y-3">
+                  {activeLoans.map((emp) => {
+                    const situacao = getSituacao(emp.data_prevista_devolucao)
+                    const tipo = TIPO_LABELS[emp.tipo_emprestimo || 'comum'] || 'Comum'
+                    return (
+                      <div
+                        key={emp.id}
+                        className={cn(
+                          'border rounded-lg p-4',
+                          situacao === 'Atrasado'
+                            ? 'bg-red-50 border-red-200'
+                            : 'bg-white border-gray-200',
+                        )}
+                      >
+                        <p className="text-lg font-bold text-gray-900">
+                          {emp.expand?.livro?.titulo || 'Livro não encontrado'}
+                        </p>
+                        <div className="mt-1 space-y-1 text-base text-gray-700">
+                          <p>
+                            Livro nº{' '}
+                            <span className="font-semibold">
+                              {emp.expand?.livro?.numero_cadastro || '—'}
+                            </span>
+                          </p>
+                          <p>
+                            Tipo: <span className="font-semibold">{tipo}</span>
+                          </p>
+                          <p>Empréstimo: {formatDate(emp.data_emprestimo)}</p>
+                          <p>Devolução: {formatDate(emp.data_prevista_devolucao)}</p>
+                          <p className="flex items-center gap-2">
+                            Situação: <Badge className={SITUACAO_BADGE[situacao]}>{situacao}</Badge>
+                          </p>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    )
+                  })}
                 </div>
               )}
+              <div className="mt-3 pt-3 border-t border-gray-200">
+                <p className="text-sm font-semibold text-gray-700 mb-1">Empréstimos atuais:</p>
+                <p className="text-base text-gray-600">Comum: {comumCount} de 1</p>
+                <p className="text-base text-gray-600">Estudo: {estudoCount} de 1</p>
+              </div>
             </div>
 
-            {/* Loan history */}
             <div>
               <h3 className="text-lg font-bold text-gray-900 mb-2">Histórico de Empréstimos</h3>
               {emprestimos.length === 0 ? (
