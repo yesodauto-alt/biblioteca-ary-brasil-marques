@@ -14,6 +14,7 @@ import Emprestimos from '@/pages/Emprestimos'
 import Devolucao from '@/pages/Devolucao'
 import Relatorios from '@/pages/Relatorios'
 import Configuracoes from '@/pages/Configuracoes'
+import Importacao from '@/pages/Importacao'
 import NotFound from '@/pages/NotFound'
 
 const App = () => (
@@ -43,6 +44,14 @@ const App = () => (
               element={
                 <ProtectedRoute requiredRole="administrador">
                   <Configuracoes />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/importacao"
+              element={
+                <ProtectedRoute requiredRole="administrador">
+                  <Importacao />
                 </ProtectedRoute>
               }
             />

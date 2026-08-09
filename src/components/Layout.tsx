@@ -12,6 +12,7 @@ import {
   X,
   BookMarked,
   CornerUpLeft,
+  Upload,
 } from 'lucide-react'
 import { useAuth } from '@/hooks/use-auth'
 import { Button } from '@/components/ui/button'
@@ -24,6 +25,7 @@ const NAV_ITEMS = [
   { path: '/emprestimos', label: 'Empréstimos', icon: ArrowLeftRight },
   { path: '/devolucao', label: 'Devolver', icon: CornerUpLeft },
   { path: '/relatorios', label: 'Relatórios', icon: BarChart3 },
+  { path: '/importacao', label: 'Importar', icon: Upload },
   { path: '/configuracoes', label: 'Configurações', icon: Settings },
 ]
 
@@ -42,7 +44,9 @@ export default function Layout() {
       .catch(() => {})
   }, [])
 
-  const visibleNavItems = NAV_ITEMS.filter((item) => item.path !== '/configuracoes' || isAdmin)
+  const visibleNavItems = NAV_ITEMS.filter(
+    (item) => (item.path !== '/configuracoes' && item.path !== '/importacao') || isAdmin,
+  )
   const currentPage = visibleNavItems.find((item) => item.path === location.pathname)
   const currentTitle = currentPage ? currentPage.label : 'Início'
   const volunteerName = user?.name || user?.email || 'Voluntário'
