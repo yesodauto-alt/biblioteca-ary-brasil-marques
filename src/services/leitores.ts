@@ -50,3 +50,9 @@ export const updateLeitor = async (id: string, data: Partial<LeitorFormData>): P
 export const deleteLeitor = async (id: string): Promise<void> => {
   await pb.collection('leitores').delete(id)
 }
+
+export const getLeitorByCadastro = async (numeroCadastro: string): Promise<Leitor> => {
+  return await pb
+    .collection('leitores')
+    .getFirstListItem<Leitor>(`numero_cadastro = "${numeroCadastro}"`)
+}

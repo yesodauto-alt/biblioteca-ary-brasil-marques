@@ -58,3 +58,13 @@ export const createLivro = async (data: LivroFormData): Promise<Livro> => {
     status: 'disponível',
   })
 }
+
+export const getLivroByCadastro = async (numeroCadastro: string): Promise<Livro> => {
+  return await pb
+    .collection('livros')
+    .getFirstListItem<Livro>(`numero_cadastro = "${numeroCadastro}"`)
+}
+
+export const updateLivroStatus = async (id: string, status: LivroStatus): Promise<Livro> => {
+  return await pb.collection('livros').update<Livro>(id, { status })
+}

@@ -53,3 +53,29 @@ export const getEmprestimosByLivro = async (livroId: string): Promise<Emprestimo
     expand: 'leitor',
   })
 }
+
+export const LOAN_PERIOD_DAYS = 15
+
+export interface CreateEmprestimoData {
+  leitor: string
+  livro: string
+  responsavel: string
+}
+
+export const createEmprestimo = async (data: CreateEmprestimoData): Promise<Emprestimo> => {
+  const today = new Date()
+  const returnDate = new Date()
+  returnDate.setDate(returnDate.getDate() + LOAN_PERIOD_DAYS)
+
+  const toDateStr = (d: Date) => d.toISOString().split('T')[0]
+
+  return await pb.collection('emprestimos').create<Emprestimo>({
+    leitor: data.leitor,
+    livro: data.livro,
+    data_emprestimo: toDateStr(today),
+    data_prevista_devolucao: toDateStr(returnDate),
+    status: 'ativo',
+    quantidade_renovacoes: 0,
+    responsavel: data.responsavel,
+  })
+}
