@@ -23,9 +23,9 @@ const NAV_ITEMS = [
   { path: '/usuarios', label: 'Usuários', icon: Users },
   { path: '/acervo', label: 'Acervo', icon: BookOpen },
   { path: '/emprestimos', label: 'Empréstimos', icon: ArrowLeftRight },
-  { path: '/devolucao', label: 'Devolver', icon: CornerUpLeft },
+  { path: '/devolucao', label: 'Devolução', icon: CornerUpLeft },
   { path: '/relatorios', label: 'Relatórios', icon: BarChart3 },
-  { path: '/importacao', label: 'Importar', icon: Upload },
+  { path: '/importacao', label: 'Importação', icon: Upload },
   { path: '/configuracoes', label: 'Configurações', icon: Settings },
 ]
 

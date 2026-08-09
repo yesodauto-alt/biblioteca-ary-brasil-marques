@@ -102,7 +102,7 @@ export default function Relatorios() {
             variant="outline"
             onClick={() => setReportType(key)}
             className={cn(
-              'h-auto py-3 px-3 text-sm font-semibold text-center justify-center break-words',
+              'h-auto py-3 px-3 text-base font-semibold text-center justify-center break-words',
               reportType === key
                 ? 'bg-[#1F5C8B] text-white hover:bg-[#174A73] border-[#1F5C8B]'
                 : 'border-gray-300 text-gray-700 hover:bg-gray-50',

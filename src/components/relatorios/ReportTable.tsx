@@ -48,7 +48,7 @@ export function ReportTable<T = any>({
               {columns.map((col, i) => (
                 <th
                   key={i}
-                  className="px-4 py-3 text-left text-sm font-bold text-gray-600 uppercase tracking-wide whitespace-nowrap"
+                  className="px-4 py-3 text-left text-base font-bold text-gray-600 uppercase tracking-wide whitespace-nowrap"
                 >
                   {col.header}
                 </th>

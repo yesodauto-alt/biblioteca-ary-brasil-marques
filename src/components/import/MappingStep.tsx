@@ -61,7 +61,7 @@ export function MappingStep({
                 value={mapping[header] || '__none__'}
                 onValueChange={(v) => handleChange(header, v)}
               >
-                <SelectTrigger className="h-10">
+                <SelectTrigger className="h-12">
                   <SelectValue placeholder="Não importar" />
                 </SelectTrigger>
                 <SelectContent>

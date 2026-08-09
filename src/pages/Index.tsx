@@ -163,7 +163,7 @@ export default function Index() {
           className="h-16 text-xl font-bold bg-[#C62828] hover:bg-[#A31D1D]"
         >
           <CornerUpLeft className="w-7 h-7 mr-2" />
-          Devolver livro
+          Devolução
         </Button>
       </div>
 
@@ -253,16 +253,18 @@ export default function Index() {
                     : 'bg-amber-50 border-amber-300'
                 }`}
               >
-                <button onClick={() => openLeitor(item.leitorId)} className="flex-1 text-left">
-                  <p className="text-lg font-bold text-gray-900 hover:underline">
-                    {item.leitorNome}
-                  </p>
+                <button
+                  onClick={() => openLeitor(item.leitorId)}
+                  className="flex-1 text-left cursor-pointer"
+                >
+                  <p className="text-lg font-bold text-[#1F5C8B]">{item.leitorNome}</p>
                   <p className="text-sm text-gray-600">Nº {item.leitorNumero}</p>
                 </button>
-                <button onClick={() => openLivro(item.livroId)} className="flex-1 text-left">
-                  <p className="text-base font-semibold text-gray-800 hover:underline">
-                    {item.livroTitulo}
-                  </p>
+                <button
+                  onClick={() => openLivro(item.livroId)}
+                  className="flex-1 text-left cursor-pointer"
+                >
+                  <p className="text-base font-semibold text-[#1F5C8B]">{item.livroTitulo}</p>
                   <p className="text-sm text-gray-500">
                     Devolução: {formatDate(item.dataPrevistaDevolucao)}
                   </p>

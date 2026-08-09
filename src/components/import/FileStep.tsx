@@ -78,7 +78,7 @@ export function FileStep({
           <div className="flex items-center gap-3 bg-white border border-gray-200 rounded-lg p-4">
             <FileText className="w-6 h-6 text-[#1F5C8B]" />
             <span className="font-semibold text-gray-900 flex-1">{fileName}</span>
-            <Button variant="outline" onClick={() => inputRef.current?.click()} className="h-10">
+            <Button variant="outline" onClick={() => inputRef.current?.click()} className="h-12">
               Trocar arquivo
             </Button>
           </div>

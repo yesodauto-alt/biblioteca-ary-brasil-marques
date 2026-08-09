@@ -162,7 +162,7 @@ export default function Devolucao() {
           <CornerUpLeft className="w-7 h-7" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Devolver livro</h2>
+          <h2 className="text-2xl font-bold text-gray-900">Devolução</h2>
           <p className="text-base text-gray-500">Registro rápido de devoluções</p>
         </div>
       </div>
