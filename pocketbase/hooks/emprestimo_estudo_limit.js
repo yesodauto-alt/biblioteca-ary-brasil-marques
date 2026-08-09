@@ -9,7 +9,11 @@ onRecordCreateRequest((e) => {
 
     var body = e.requestInfo().body || {}
     var leitorId = body.leitor || e.record.getString('leitor') || ''
-    var tipo = body.tipo_emprestimo || e.record.getString('tipo_emprestimo') || 'comum'
+    var tipo = e.record.getString('tipo_emprestimo') || body.tipo_emprestimo || 'comum'
+    if (tipo === '') {
+      tipo = 'comum'
+    }
+    e.record.set('tipo_emprestimo', tipo)
 
     if (leitorId) {
       var activeLoans = $app.findRecordsByFilter(

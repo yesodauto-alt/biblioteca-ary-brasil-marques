@@ -93,7 +93,6 @@ export const createEmprestimo = async (data: CreateEmprestimoData): Promise<Empr
     livro: data.livro,
     data_emprestimo: toDateStr(today),
     data_prevista_devolucao: toDateStr(returnDate),
-    data_devolucao_real: '',
     status: 'ativo',
     quantidade_renovacoes: 0,
     responsavel: data.responsavel,
