@@ -56,3 +56,12 @@ export const getLeitorByCadastro = async (numeroCadastro: string): Promise<Leito
     .collection('leitores')
     .getFirstListItem<Leitor>(`numero_cadastro = "${numeroCadastro}"`)
 }
+
+export const searchLeitores = async (query: string): Promise<Leitor[]> => {
+  const q = query.trim()
+  if (!q) return []
+  return await pb.collection('leitores').getFullList<Leitor>({
+    filter: `nome_completo ~ "${q}" || numero_cadastro = "${q}"`,
+    sort: 'nome_completo',
+  })
+}
