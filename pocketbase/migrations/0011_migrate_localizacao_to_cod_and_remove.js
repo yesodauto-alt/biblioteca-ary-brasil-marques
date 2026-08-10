@@ -10,7 +10,7 @@ migrate(
     const col = app.findCollectionByNameOrId('livros')
     const field = col.fields.getByName('localizacao_fisica')
     if (field) {
-      col.fields.remove(field.id)
+      col.fields.removeById(field.id)
     }
     app.save(col)
   },

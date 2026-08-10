@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-10T01:23:21.396Z",
+  "generatedAt": "2026-08-10T01:27:00.349Z",
   "collections": [
     {
       "name": "users",
@@ -183,12 +183,6 @@
         },
         {
           "name": "categoria",
-          "type": "text",
-          "required": false,
-          "system": false
-        },
-        {
-          "name": "localizacao_fisica",
           "type": "text",
           "required": false,
           "system": false
