@@ -11,17 +11,28 @@ export function getTodayInTimezone(timezone: string = DEFAULT_TIMEZONE): string 
   }).format(new Date())
 }
 
+export function normalizeToDate(dateStr: string): string {
+  if (!dateStr) return ''
+  return dateStr.split(' ')[0].split('T')[0]
+}
+
 export function isValidDate(dateStr: string): boolean {
   if (!dateStr) return false
-  const d = new Date(dateStr.includes('T') ? dateStr : dateStr + 'T00:00:00')
+  const normalized = dateStr.includes('T')
+    ? dateStr
+    : dateStr.includes(' ')
+      ? dateStr.replace(' ', 'T')
+      : dateStr + 'T00:00:00'
+  const d = new Date(normalized)
   return !isNaN(d.getTime())
 }
 
 export function getSituacao(dataPrevista: string, timezone: string = DEFAULT_TIMEZONE): Situacao {
-  if (!dataPrevista || !isValidDate(dataPrevista)) return 'sem-data'
+  const normalized = normalizeToDate(dataPrevista)
+  if (!normalized || !isValidDate(normalized)) return 'sem-data'
   const today = getTodayInTimezone(timezone)
-  if (dataPrevista > today) return 'em-dia'
-  if (dataPrevista === today) return 'vence-hoje'
+  if (normalized > today) return 'em-dia'
+  if (normalized === today) return 'vence-hoje'
   return 'atrasado'
 }
 
@@ -31,8 +42,9 @@ export function getDaysOverdue(
 ): number | null {
   if (!dataPrevista || !isValidDate(dataPrevista)) return null
   const today = getTodayInTimezone(timezone)
-  if (dataPrevista >= today) return 0
-  const prevista = new Date(dataPrevista + 'T00:00:00')
+  const dateOnly = normalizeToDate(dataPrevista)
+  if (dateOnly >= today) return 0
+  const prevista = new Date(dateOnly + 'T00:00:00')
   const hoje = new Date(today + 'T00:00:00')
   const diffMs = hoje.getTime() - prevista.getTime()
   return Math.floor(diffMs / (1000 * 60 * 60 * 24))
@@ -61,14 +73,20 @@ export const SITUACAO_PRIORITY: Record<Situacao, number> = {
 
 export function formatDate(dateStr: string): string {
   if (!dateStr || !isValidDate(dateStr)) return 'Data não informada'
-  return new Date(dateStr.includes('T') ? dateStr : dateStr + 'T00:00:00').toLocaleDateString(
-    'pt-BR',
-  )
+  const dateOnly = normalizeToDate(dateStr)
+  const parts = dateOnly.split('-')
+  if (parts.length !== 3) return 'Data não informada'
+  return `${parts[2]}/${parts[1]}/${parts[0]}`
 }
 
 export function formatDateTime(dateStr: string, timezone: string = DEFAULT_TIMEZONE): string {
   if (!dateStr || !isValidDate(dateStr)) return 'Data não informada'
-  const date = new Date(dateStr)
+  const normalized = dateStr.includes('T')
+    ? dateStr
+    : dateStr.includes(' ')
+      ? dateStr.replace(' ', 'T')
+      : dateStr + 'T00:00:00'
+  const date = new Date(normalized)
   const datePart = new Intl.DateTimeFormat('pt-BR', {
     timeZone: timezone,
     day: '2-digit',

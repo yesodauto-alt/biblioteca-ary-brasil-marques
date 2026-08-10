@@ -1,6 +1,5 @@
 import pb from '@/lib/pocketbase/client'
 import { getLivroByCadastro } from '@/services/livros'
-import { getConfiguracoes } from '@/services/configuracoes'
 import { getVoluntario } from '@/services/voluntarios'
 
 export interface Emprestimo {
@@ -58,33 +57,10 @@ export interface CreateEmprestimoData {
 
 export const createEmprestimo = async (data: CreateEmprestimoData): Promise<Emprestimo> => {
   const tipo = data.tipo_emprestimo || 'comum'
-  let loanPeriod = 15
-  let timezone = 'America/Sao_Paulo'
-  try {
-    const config = await getConfiguracoes()
-    if (config?.prazo_devolucao_dias) loanPeriod = config.prazo_devolucao_dias
-    if (config?.fuso_horario) timezone = config.fuso_horario
-  } catch {
-    /* ignored */
-  }
-  if (tipo === 'estudo') loanPeriod = 90
-
-  const today = new Date()
-  const returnDate = new Date()
-  returnDate.setDate(returnDate.getDate() + loanPeriod)
-  const toDateStr = (d: Date) =>
-    new Intl.DateTimeFormat('sv-SE', {
-      timeZone: timezone,
-      year: 'numeric',
-      month: '2-digit',
-      day: '2-digit',
-    }).format(d)
 
   return await pb.collection('emprestimos').create<Emprestimo>({
     leitor: data.leitor,
     livro: data.livro,
-    data_emprestimo: toDateStr(today),
-    data_prevista_devolucao: toDateStr(returnDate),
     status: 'ativo',
     quantidade_renovacoes: 0,
     responsavel_voluntario: data.responsavel_voluntario,

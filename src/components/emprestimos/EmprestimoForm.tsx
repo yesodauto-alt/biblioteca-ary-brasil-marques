@@ -19,11 +19,7 @@ import { getConfiguracoes, type Configuracoes } from '@/services/configuracoes'
 import { toast } from 'sonner'
 import type { Leitor } from '@/services/leitores'
 import { cn } from '@/lib/utils'
-
-function formatDate(dateStr: string): string {
-  if (!dateStr) return '—'
-  return new Date(dateStr + 'T00:00:00').toLocaleDateString('pt-BR')
-}
+import { formatDate } from '@/lib/loan-utils'
 
 interface EmprestimoFormProps {
   open: boolean

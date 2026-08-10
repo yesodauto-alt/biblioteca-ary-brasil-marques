@@ -9,7 +9,13 @@ import { EmprestimoEditForm } from '@/components/emprestimos/EmprestimoEditForm'
 import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog'
 import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
-import { formatDate, getSituacao, SITUACAO_LABELS, SITUACAO_BADGE } from '@/lib/loan-utils'
+import {
+  formatDate,
+  formatDateTime,
+  getSituacao,
+  SITUACAO_LABELS,
+  SITUACAO_BADGE,
+} from '@/lib/loan-utils'
 
 const TIPO_LABELS: Record<string, string> = { comum: 'Comum', estudo: 'Estudo' }
 
@@ -78,7 +84,7 @@ export function EmprestimoDetalhes({
     ? `${voluntarioResp.matricula} — ${voluntarioResp.nome}`
     : 'Não informado'
   const dataEmprestimoDisplay = emprestimo?.data_emprestimo
-    ? formatDate(emprestimo.data_emprestimo)
+    ? formatDateTime(emprestimo.data_emprestimo)
     : 'Não informado'
   const dataPrevistaDisplay = emprestimo?.data_prevista_devolucao
     ? formatDate(emprestimo.data_prevista_devolucao)
