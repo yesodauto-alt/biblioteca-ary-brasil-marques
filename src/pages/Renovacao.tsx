@@ -8,12 +8,8 @@ import { type Leitor } from '@/services/leitores'
 import { getEmprestimosByLeitor, renovarEmprestimo, type Emprestimo } from '@/services/emprestimos'
 import { getConfiguracoes, type Configuracoes as ConfigType } from '@/services/configuracoes'
 import { LeitorSearch } from '@/components/usuarios/LeitorSearch'
+import { formatDate } from '@/lib/loan-utils'
 import { toast } from 'sonner'
-
-function formatDate(dateStr: string): string {
-  if (!dateStr) return '—'
-  return new Date(dateStr + 'T00:00:00').toLocaleDateString('pt-BR')
-}
 
 function calcNewReturnDate(tipo: string, prazo: number): string {
   const days = tipo === 'estudo' ? 90 : prazo

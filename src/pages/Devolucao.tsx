@@ -29,17 +29,14 @@ import {
   type EmprestimoWithLeitor,
 } from '@/services/emprestimos'
 import { getConfiguracoes, type Configuracoes } from '@/services/configuracoes'
+import { formatDate, formatDateTime, normalizeToDate } from '@/lib/loan-utils'
 import { toast } from 'sonner'
-
-function formatDate(dateStr: string): string {
-  if (!dateStr) return '—'
-  return new Date(dateStr + 'T00:00:00').toLocaleDateString('pt-BR')
-}
 
 function getLoanSituation(dataPrevista: string): { label: string; isLate: boolean } {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
-  const due = new Date(dataPrevista + 'T00:00:00')
+  const normalized = normalizeToDate(dataPrevista)
+  const due = new Date(normalized + 'T00:00:00')
   due.setHours(0, 0, 0, 0)
   return { label: today > due ? 'Atrasado' : 'No prazo', isLate: today > due }
 }
@@ -110,7 +107,7 @@ export default function Devolucao() {
       toast.error('Selecione o voluntário responsável por esta operação.')
       return
     }
-    const due = new Date(emprestimo.data_prevista_devolucao + 'T00:00:00')
+    const due = new Date(normalizeToDate(emprestimo.data_prevista_devolucao) + 'T00:00:00')
     due.setDate(due.getDate() + config.prazo_devolucao_dias)
     setNewReturnDate(due.toISOString().split('T')[0])
     setRenewOpen(true)
@@ -241,7 +238,7 @@ export default function Devolucao() {
                   <div>
                     <p className="text-sm text-gray-500 font-medium">Empréstimo</p>
                     <p className="text-base font-semibold text-gray-900">
-                      {formatDate(emprestimo.data_emprestimo)}
+                      {formatDateTime(emprestimo.data_emprestimo)}
                     </p>
                   </div>
                 </div>
