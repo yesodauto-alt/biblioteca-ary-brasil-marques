@@ -58,8 +58,14 @@ export default function Usuarios() {
     setFichaOpen(true)
   }
 
-  const handleCreated = () => {
-    toast.success('Usuário cadastrado com sucesso!')
+  const handleCreated = (created?: Leitor) => {
+    if (created?.numero_cadastro) {
+      toast.success('Usuário cadastrado com sucesso.', {
+        description: `Número de cadastro: ${created.numero_cadastro}`,
+      })
+    } else {
+      toast.success('Dados atualizados com sucesso.')
+    }
   }
 
   return (

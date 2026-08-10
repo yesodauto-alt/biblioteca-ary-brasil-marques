@@ -16,7 +16,7 @@ export interface Leitor {
 }
 
 export interface LeitorFormData {
-  numero_cadastro: string
+  numero_cadastro?: string
   nome_completo: string
   telefone: string
   email?: string
@@ -36,11 +36,18 @@ export const getLeitor = async (id: string): Promise<Leitor> => {
 }
 
 export const createLeitor = async (data: LeitorFormData): Promise<Leitor> => {
-  return await pb.collection('leitores').create<Leitor>({
-    ...data,
+  const payload: Record<string, unknown> = {
+    nome_completo: data.nome_completo,
+    telefone: data.telefone,
     data_cadastro: new Date().toISOString().split('T')[0],
     status: 'ativo',
-  })
+  }
+  if (data.numero_cadastro) payload.numero_cadastro = data.numero_cadastro
+  if (data.email) payload.email = data.email
+  if (data.data_nascimento) payload.data_nascimento = data.data_nascimento
+  if (data.endereco) payload.endereco = data.endereco
+  if (data.observacoes) payload.observacoes = data.observacoes
+  return await pb.collection('leitores').create<Leitor>(payload)
 }
 
 export const updateLeitor = async (id: string, data: Partial<LeitorFormData>): Promise<Leitor> => {

@@ -187,7 +187,15 @@ export function VolunteerManagement() {
         open={formOpen}
         onOpenChange={setFormOpen}
         editingUser={editingUser}
-        onSaved={() => toast.success('Dados salvos com sucesso.')}
+        onSaved={(created) => {
+          if (created?.matricula) {
+            toast.success('Voluntário cadastrado com sucesso.', {
+              description: `Matrícula: ${created.matricula}`,
+            })
+          } else {
+            toast.success('Dados salvos com sucesso.')
+          }
+        }}
       />
       <DeleteConfirmDialog
         open={deleteOpen}

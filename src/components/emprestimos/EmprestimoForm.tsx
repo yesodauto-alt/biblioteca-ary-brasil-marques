@@ -120,18 +120,21 @@ export function EmprestimoForm({
     }
     setSubmitting(true)
     try {
-      await createEmprestimo({
+      const created = await createEmprestimo({
         leitor: leitor.id,
         livro: foundLivro.id,
         responsavel: selectedVoluntario,
         tipo_emprestimo: tipo,
       })
       await updateLivroStatus(foundLivro.id, 'emprestado')
-      toast.success('Empréstimo registrado com sucesso!')
+      toast.success('Empréstimo registrado com sucesso!', {
+        description: `A ENTREGA SERÁ DIA ${formatDate(created.data_prevista_devolucao)}`,
+      })
       onCreated()
       onOpenChange(false)
-    } catch {
-      toast.error('Erro ao registrar empréstimo. Tente novamente.')
+    } catch (error) {
+      console.error('EmprestimoForm submit error:', error)
+      toast.error('Não foi possível concluir a operação. Verifique os dados e tente novamente.')
     } finally {
       setSubmitting(false)
     }
@@ -305,9 +308,10 @@ export function EmprestimoForm({
 
             <VolunteerSelect value={selectedVoluntario} onChange={setSelectedVoluntario} />
 
-            <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
-              <p className="text-sm text-gray-500 font-medium">Devolução prevista</p>
-              <p className="text-base font-bold text-gray-900">{formatDate(returnDate)}</p>
+            <div className="bg-red-50 rounded-lg p-4 border-2 border-red-300 text-center">
+              <p className="text-lg font-bold text-red-600 uppercase">
+                A ENTREGA SERÁ DIA {formatDate(returnDate)}
+              </p>
             </div>
 
             <div className="flex gap-3">

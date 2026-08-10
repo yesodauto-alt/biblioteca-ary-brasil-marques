@@ -26,12 +26,13 @@ import {
   type UpdateUserData,
 } from '@/services/users'
 import { extractFieldErrors, type FieldErrors } from '@/lib/pocketbase/errors'
+import { toast } from 'sonner'
 
 interface VolunteerFormProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   editingUser: User | null
-  onSaved: () => void
+  onSaved: (created?: User) => void
 }
 
 export function VolunteerForm({ open, onOpenChange, editingUser, onSaved }: VolunteerFormProps) {
@@ -75,18 +76,25 @@ export function VolunteerForm({ open, onOpenChange, editingUser, onSaved }: Volu
           data.password = form.password
         }
         await updateUser(editingUser.id, data)
+        onSaved()
       } else {
-        await createUser({
+        const created = await createUser({
           name: form.name.trim(),
           email: form.email.trim(),
           password: form.password,
           role: form.role,
         })
+        onSaved(created)
       }
-      onSaved()
       onOpenChange(false)
     } catch (error) {
-      setFieldErrors(extractFieldErrors(error))
+      console.error('VolunteerForm submit error:', error)
+      setFieldErrors({})
+      toast.error(
+        editingUser
+          ? 'Não foi possível atualizar o voluntário. Verifique os dados e tente novamente.'
+          : 'Não foi possível cadastrar o voluntário. Verifique os dados e tente novamente.',
+      )
     } finally {
       setLoading(false)
     }

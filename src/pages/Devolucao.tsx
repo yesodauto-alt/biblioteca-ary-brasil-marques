@@ -127,9 +127,12 @@ export default function Devolucao() {
         quantidade_renovacoes: updated.quantidade_renovacoes,
       })
       setRenewOpen(false)
-      toast.success('Empréstimo renovado com sucesso.')
-    } catch {
-      toast.error('Erro ao renovar empréstimo. Tente novamente.')
+      toast.success('Empréstimo renovado com sucesso!', {
+        description: `A ENTREGA SERÁ DIA ${formatDate(newReturnDate)}`,
+      })
+    } catch (error) {
+      console.error('Devolucao renew error:', error)
+      toast.error('Não foi possível concluir a operação. Verifique os dados e tente novamente.')
     } finally {
       setRenewing(false)
     }
@@ -150,8 +153,9 @@ export default function Devolucao() {
       setError(null)
       setSelectedVoluntario('')
       setTimeout(() => inputRef.current?.focus(), 100)
-    } catch {
-      toast.error('Erro ao registrar devolução. Tente novamente.')
+    } catch (error) {
+      console.error('Devolucao error:', error)
+      toast.error('Não foi possível concluir a operação. Verifique os dados e tente novamente.')
     } finally {
       setSubmitting(false)
     }
@@ -333,11 +337,10 @@ export default function Devolucao() {
                     {formatDate(emprestimo.data_prevista_devolucao)}
                   </span>
                 </div>
-                <div className="flex items-center justify-between bg-[#1F5C8B]/5 rounded-lg p-3 border border-[#1F5C8B]/20">
-                  <span className="text-base text-gray-600">Nova data de devolução</span>
-                  <span className="text-base font-bold text-[#1F5C8B]">
-                    {formatDate(newReturnDate)}
-                  </span>
+                <div className="bg-red-50 rounded-lg p-4 border-2 border-red-300 text-center">
+                  <p className="text-lg font-bold text-red-600 uppercase">
+                    A ENTREGA SERÁ DIA {formatDate(newReturnDate)}
+                  </p>
                 </div>
               </>
             )}

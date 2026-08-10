@@ -3,7 +3,7 @@ import { RefreshCw, BookOpen, Calendar, CheckCircle2, X, ArrowLeft, Loader2 } fr
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { VolunteerSelect } from '@/components/volunteers/VolunteerSelect'
-import { getErrorMessage } from '@/lib/pocketbase/errors'
+
 import { type Leitor } from '@/services/leitores'
 import { getEmprestimosByLeitor, renovarEmprestimo, type Emprestimo } from '@/services/emprestimos'
 import { getConfiguracoes, type Configuracoes as ConfigType } from '@/services/configuracoes'
@@ -68,12 +68,13 @@ export default function Renovacao() {
     try {
       const novaData = calcNewReturnDate(selectedLoan.tipo_emprestimo, config.prazo_devolucao_dias)
       await renovarEmprestimo(selectedLoan.id, novaData, selectedVoluntario)
-      setSuccess(`Empréstimo renovado com sucesso. Nova devolução: ${formatDate(novaData)}.`)
+      setSuccess(`Empréstimo renovado com sucesso. A ENTREGA SERÁ DIA ${formatDate(novaData)}.`)
       setSelectedLoan(null)
       setSelectedVoluntario('')
       if (selectedLeitor) loadLoans(selectedLeitor.id)
     } catch (err) {
-      toast.error(getErrorMessage(err))
+      console.error('Renovacao error:', err)
+      toast.error('Não foi possível concluir a operação. Verifique os dados e tente novamente.')
     } finally {
       setRenewing(false)
     }
@@ -214,14 +215,14 @@ export default function Renovacao() {
                 <p className="text-base text-gray-700">
                   Livro: <span className="font-semibold">{selectedLoan.expand?.livro?.titulo}</span>
                 </p>
-                <p className="text-base text-gray-700">
-                  Nova devolução:{' '}
-                  <span className="font-semibold">
+                <div className="bg-red-50 rounded-lg p-4 border-2 border-red-300 text-center">
+                  <p className="text-lg font-bold text-red-600 uppercase">
+                    A ENTREGA SERÁ DIA{' '}
                     {formatDate(
                       calcNewReturnDate(selectedLoan.tipo_emprestimo, config.prazo_devolucao_dias),
                     )}
-                  </span>
-                </p>
+                  </p>
+                </div>
                 <VolunteerSelect value={selectedVoluntario} onChange={setSelectedVoluntario} />
                 <Button
                   onClick={handleRenew}

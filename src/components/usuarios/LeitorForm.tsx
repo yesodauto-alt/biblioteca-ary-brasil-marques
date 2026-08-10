@@ -12,20 +12,18 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog'
 import { createLeitor, updateLeitor, type LeitorFormData, type Leitor } from '@/services/leitores'
-import { extractFieldErrors, type FieldErrors } from '@/lib/pocketbase/errors'
+import { toast } from 'sonner'
 
 interface LeitorFormProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onSaved: () => void
+  onSaved: (leitor?: Leitor) => void
   leitor?: Leitor | null
 }
 
 export function LeitorForm({ open, onOpenChange, onSaved, leitor }: LeitorFormProps) {
   const [loading, setLoading] = useState(false)
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
-  const [form, setForm] = useState<LeitorFormData>({
-    numero_cadastro: '',
+  const [form, setForm] = useState({
     nome_completo: '',
     telefone: '',
     email: '',
@@ -38,7 +36,6 @@ export function LeitorForm({ open, onOpenChange, onSaved, leitor }: LeitorFormPr
     if (open) {
       if (leitor) {
         setForm({
-          numero_cadastro: leitor.numero_cadastro,
           nome_completo: leitor.nome_completo,
           telefone: leitor.telefone,
           email: leitor.email || '',
@@ -48,7 +45,6 @@ export function LeitorForm({ open, onOpenChange, onSaved, leitor }: LeitorFormPr
         })
       } else {
         setForm({
-          numero_cadastro: '',
           nome_completo: '',
           telefone: '',
           email: '',
@@ -57,22 +53,18 @@ export function LeitorForm({ open, onOpenChange, onSaved, leitor }: LeitorFormPr
           observacoes: '',
         })
       }
-      setFieldErrors({})
     }
   }, [open, leitor])
 
-  const handleFieldChange = (field: keyof LeitorFormData, value: string) => {
+  const handleFieldChange = (field: string, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }))
-    setFieldErrors((prev) => ({ ...prev, [field]: '' }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setFieldErrors({})
     try {
       const data: LeitorFormData = {
-        numero_cadastro: form.numero_cadastro.trim(),
         nome_completo: form.nome_completo.trim(),
         telefone: form.telefone.trim(),
       }
@@ -83,13 +75,19 @@ export function LeitorForm({ open, onOpenChange, onSaved, leitor }: LeitorFormPr
 
       if (leitor) {
         await updateLeitor(leitor.id, data)
+        onSaved()
       } else {
-        await createLeitor(data)
+        const created = await createLeitor(data)
+        onSaved(created)
       }
-      onSaved()
       onOpenChange(false)
     } catch (error) {
-      setFieldErrors(extractFieldErrors(error))
+      console.error('LeitorForm submit error:', error)
+      toast.error(
+        leitor
+          ? 'Não foi possível atualizar o usuário. Verifique os dados e tente novamente.'
+          : 'Não foi possível cadastrar o usuário. Verifique os dados e tente novamente.',
+      )
     } finally {
       setLoading(false)
     }
@@ -107,21 +105,11 @@ export function LeitorForm({ open, onOpenChange, onSaved, leitor }: LeitorFormPr
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="numero_cadastro" className="text-base font-semibold">
-              Número de Cadastro *
-            </Label>
-            <Input
-              id="numero_cadastro"
-              value={form.numero_cadastro}
-              onChange={(e) => handleFieldChange('numero_cadastro', e.target.value)}
-              className="h-12 text-base"
-              placeholder="Ex: 001"
-              required
-            />
-            {fieldErrors.numero_cadastro && (
-              <p className="text-sm text-red-500 font-medium">{fieldErrors.numero_cadastro}</p>
-            )}
+          <div className="bg-gray-50 border border-gray-200 rounded-lg p-3">
+            <p className="text-sm text-gray-500 font-medium">Número de cadastro</p>
+            <p className="text-base font-bold text-gray-900">
+              {leitor?.numero_cadastro || 'Gerado automaticamente'}
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -136,9 +124,6 @@ export function LeitorForm({ open, onOpenChange, onSaved, leitor }: LeitorFormPr
               placeholder="Nome do leitor"
               required
             />
-            {fieldErrors.nome_completo && (
-              <p className="text-sm text-red-500 font-medium">{fieldErrors.nome_completo}</p>
-            )}
           </div>
 
           <div className="space-y-2">
@@ -153,9 +138,6 @@ export function LeitorForm({ open, onOpenChange, onSaved, leitor }: LeitorFormPr
               placeholder="(11) 99999-9999"
               required
             />
-            {fieldErrors.telefone && (
-              <p className="text-sm text-red-500 font-medium">{fieldErrors.telefone}</p>
-            )}
           </div>
 
           <div className="space-y-2">
@@ -170,9 +152,6 @@ export function LeitorForm({ open, onOpenChange, onSaved, leitor }: LeitorFormPr
               className="h-12 text-base"
               placeholder="email@exemplo.com"
             />
-            {fieldErrors.email && (
-              <p className="text-sm text-red-500 font-medium">{fieldErrors.email}</p>
-            )}
           </div>
 
           <div className="space-y-2">
