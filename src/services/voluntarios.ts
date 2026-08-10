@@ -17,7 +17,14 @@ export interface VoluntarioFormData {
 }
 
 export const getVoluntarios = async (): Promise<Voluntario[]> => {
-  return await pb.collection('voluntarios').getFullList<Voluntario>({ sort: 'nome' })
+  const list = await pb.collection('voluntarios').getFullList<Voluntario>({ sort: 'matricula' })
+  return [...list].sort((a, b) => {
+    const na = parseInt(a.matricula, 10)
+    const nb = parseInt(b.matricula, 10)
+    const aNum = isNaN(na) ? Number.MAX_SAFE_INTEGER : na
+    const bNum = isNaN(nb) ? Number.MAX_SAFE_INTEGER : nb
+    return aNum - bNum
+  })
 }
 
 export const getVoluntario = async (id: string): Promise<Voluntario> => {
