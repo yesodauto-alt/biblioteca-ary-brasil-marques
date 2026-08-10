@@ -98,7 +98,7 @@ export function EmprestimoEditForm({ emprestimo, onSaved, onCancel }: Emprestimo
     setLeitor(makeLeitorFromExpand(emprestimo))
     setFoundLivro(makeLivroFromExpand(emprestimo))
     setTipo(emprestimo.tipo_emprestimo || 'comum')
-    setSelectedVoluntario(emprestimo.responsavel || '')
+    setSelectedVoluntario(emprestimo.responsavel_voluntario || '')
     setEditingLeitor(false)
     setEditingBook(false)
     setBookSearch('')

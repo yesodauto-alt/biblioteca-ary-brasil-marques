@@ -37,7 +37,7 @@ export const getEmprestimosByLeitor = async (leitorId: string): Promise<Empresti
   return await pb.collection('emprestimos').getFullList<Emprestimo>({
     filter: `leitor = "${leitorId}"`,
     sort: '-data_emprestimo',
-    expand: 'livro,responsavel',
+    expand: 'livro',
   })
 }
 
@@ -45,7 +45,7 @@ export const getEmprestimosByLivro = async (livroId: string): Promise<Emprestimo
   return await pb.collection('emprestimos').getFullList<EmprestimoWithLeitor>({
     filter: `livro = "${livroId}"`,
     sort: '-data_emprestimo',
-    expand: 'leitor,livro,responsavel',
+    expand: 'leitor,livro',
   })
 }
 
@@ -96,7 +96,7 @@ export const getActiveEmprestimos = async (): Promise<EmprestimoWithLeitor[]> =>
   return await pb.collection('emprestimos').getFullList<EmprestimoWithLeitor>({
     filter: `status = "ativo" || status = "atrasado"`,
     sort: 'data_prevista_devolucao',
-    expand: 'leitor,livro,responsavel',
+    expand: 'leitor,livro',
   })
 }
 
@@ -182,7 +182,7 @@ export const getActiveEmprestimoByLivroCadastro = async (
     .collection('emprestimos')
     .getFirstListItem<EmprestimoWithLeitor>(
       `livro = "${livro.id}" && (status = "ativo" || status = "atrasado")`,
-      { expand: 'leitor,livro,responsavel', sort: '-data_emprestimo' },
+      { expand: 'leitor,livro', sort: '-data_emprestimo' },
     )
 }
 
@@ -191,7 +191,7 @@ export const getDevolucoesHoje = async (): Promise<EmprestimoWithLeitor[]> => {
   return await pb.collection('emprestimos').getFullList<EmprestimoWithLeitor>({
     filter: `status = "devolvido" && data_devolucao_real = "${today}"`,
     sort: '-updated',
-    expand: 'leitor,livro,responsavel',
+    expand: 'leitor,livro',
   })
 }
 
@@ -268,7 +268,7 @@ export const hasActiveLoansByResponsavel = async (voluntarioId: string): Promise
     await pb
       .collection('emprestimos')
       .getFirstListItem(
-        `responsavel = "${voluntarioId}" && (status = "ativo" || status = "atrasado")`,
+        `responsavel_voluntario = "${voluntarioId}" && (status = "ativo" || status = "atrasado")`,
       )
     return true
   } catch {
