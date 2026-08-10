@@ -1,37 +1,29 @@
 onRecordViewRequest((e) => {
-  var timezone = 'America/Sao_Paulo'
-  try {
-    var configRecs = $app.findRecordsByFilter('configuracoes', "id != ''", '', 1, 0)
-    if (configRecs.length > 0) {
-      var tz = configRecs[0].getString('fuso_horario')
-      if (tz) timezone = tz
-    }
-  } catch (_) {}
-
-  var today = new Intl.DateTimeFormat('sv-SE', {
-    timeZone: timezone,
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-  }).format(new Date())
-
-  var rec = e.record
-  var status = rec.getString('status')
-  var dataPrevista = rec.getString('data_prevista_devolucao')
-
-  if (dataPrevista) {
-    if (status === 'ativo' && dataPrevista < today) {
-      rec.set('status', 'atrasado')
-      try {
-        $app.saveNoValidate(rec)
-      } catch (_) {}
-    } else if (status === 'atrasado' && dataPrevista >= today) {
-      rec.set('status', 'ativo')
-      try {
-        $app.saveNoValidate(rec)
-      } catch (_) {}
-    }
-  }
-
   e.next()
+
+  try {
+    var record = e.record
+    if (!record) return
+
+    var status = record.getString('status')
+    if (status !== 'ativo') return
+
+    var dataPrevista = record.getString('data_prevista_devolucao')
+    if (!dataPrevista) return
+
+    var now = new Date()
+    var todayStr =
+      now.getFullYear() +
+      '-' +
+      String(now.getMonth() + 1).padStart(2, '0') +
+      '-' +
+      String(now.getDate()).padStart(2, '0')
+
+    if (dataPrevista < todayStr) {
+      record.set('status', 'atrasado')
+      $app.saveNoValidate(record)
+    }
+  } catch (err) {
+    $app.logger().error('status sync view failed', 'error', String(err))
+  }
 }, 'emprestimos')

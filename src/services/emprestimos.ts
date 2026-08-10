@@ -154,22 +154,8 @@ export const getEmprestimo = async (id: string): Promise<EmprestimoWithLeitor> =
 
       emprestimo.expand = expand
       return emprestimo
-    } catch {
-      // Even the base GET failed — return a minimal record so the UI can render gracefully
-      return {
-        id,
-        leitor: '',
-        livro: '',
-        data_emprestimo: '',
-        data_prevista_devolucao: '',
-        data_devolucao_real: '',
-        status: 'ativo',
-        quantidade_renovacoes: 0,
-        tipo_emprestimo: 'comum',
-        created: '',
-        updated: '',
-        expand: {},
-      } as EmprestimoWithLeitor
+    } catch (finalErr) {
+      throw finalErr
     }
   }
 }
