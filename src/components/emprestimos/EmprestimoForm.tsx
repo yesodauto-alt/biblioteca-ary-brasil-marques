@@ -22,9 +22,15 @@ interface EmprestimoFormProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   onCreated: () => void
+  preselectedLeitor?: Leitor | null
 }
 
-export function EmprestimoForm({ open, onOpenChange, onCreated }: EmprestimoFormProps) {
+export function EmprestimoForm({
+  open,
+  onOpenChange,
+  onCreated,
+  preselectedLeitor,
+}: EmprestimoFormProps) {
   const { user } = useAuth()
   const [leitor, setLeitor] = useState<Leitor | null>(null)
   const [bookSearch, setBookSearch] = useState('')
@@ -44,13 +50,21 @@ export function EmprestimoForm({ open, onOpenChange, onCreated }: EmprestimoForm
 
   useEffect(() => {
     if (open) {
-      setLeitor(null)
+      if (preselectedLeitor) {
+        setLeitor(preselectedLeitor)
+        getEmprestimosByLeitor(preselectedLeitor.id)
+          .then(setActiveLoans)
+          .catch(() => setActiveLoans([]))
+      } else {
+        setLeitor(null)
+        setActiveLoans([])
+      }
       setBookSearch('')
       setFoundLivro(null)
       setBookError(null)
       setTipo('comum')
     }
-  }, [open])
+  }, [open, preselectedLeitor])
 
   const handleLeitorSelected = async (l: Leitor) => {
     setLeitor(l)

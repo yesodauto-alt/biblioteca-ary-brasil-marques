@@ -61,7 +61,7 @@ export const searchLeitores = async (query: string): Promise<Leitor[]> => {
   const q = query.trim()
   if (!q) return []
   return await pb.collection('leitores').getFullList<Leitor>({
-    filter: `nome_completo ~ "${q}" || numero_cadastro = "${q}"`,
+    filter: `nome_completo ~ "${q}" || numero_cadastro ~ "${q}"`,
     sort: 'nome_completo',
   })
 }

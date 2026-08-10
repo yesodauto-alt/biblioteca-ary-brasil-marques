@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
-import { ArrowLeftRight, Search, BookOpen, User, Calendar, Plus } from 'lucide-react'
+import { ArrowLeftRight, Search, BookOpen, User, Calendar, Plus, Phone } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { EmprestimoForm } from '@/components/emprestimos/EmprestimoForm'
@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { LeitorFicha } from '@/components/usuarios/LeitorFicha'
 import { LivroFicha } from '@/components/acervo/LivroFicha'
 import { getActiveEmprestimos, type EmprestimoWithLeitor } from '@/services/emprestimos'
+import { searchLeitores, type Leitor } from '@/services/leitores'
 import { useRealtime } from '@/hooks/use-realtime'
 import {
   getSituacao,
@@ -46,6 +47,25 @@ export default function Emprestimos() {
   const [livroFichaId, setLivroFichaId] = useState<string | null>(null)
   const [livroFichaOpen, setLivroFichaOpen] = useState(false)
   const [formOpen, setFormOpen] = useState(false)
+  const [formLeitor, setFormLeitor] = useState<Leitor | null>(null)
+  const [leitorResults, setLeitorResults] = useState<Leitor[]>([])
+
+  useEffect(() => {
+    const q = search.trim()
+    if (!q) {
+      setLeitorResults([])
+      return
+    }
+    const timer = setTimeout(async () => {
+      try {
+        const results = await searchLeitores(q)
+        setLeitorResults(results)
+      } catch {
+        setLeitorResults([])
+      }
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [search])
 
   const loadData = useCallback(async () => {
     try {
@@ -118,7 +138,10 @@ export default function Emprestimos() {
           </div>
         </div>
         <Button
-          onClick={() => setFormOpen(true)}
+          onClick={() => {
+            setFormLeitor(null)
+            setFormOpen(true)
+          }}
           className="h-14 px-6 text-lg font-bold bg-[#1F5C8B] hover:bg-[#174A73] shadow-sm"
         >
           <Plus className="w-6 h-6 mr-2" />+ Novo empréstimo
@@ -152,13 +175,44 @@ export default function Emprestimos() {
         ))}
       </div>
 
+      {leitorResults.length > 0 && (
+        <div className="space-y-3">
+          <p className="text-sm font-semibold text-gray-500 uppercase tracking-wide">
+            Usuários encontrados — clique para iniciar empréstimo
+          </p>
+          {leitorResults.map((leitor) => (
+            <button
+              key={leitor.id}
+              onClick={() => {
+                setFormLeitor(leitor)
+                setFormOpen(true)
+              }}
+              className="w-full text-left bg-white border-2 border-gray-200 rounded-xl p-4 hover:border-[#1F5C8B] hover:bg-[#1F5C8B]/5 transition-colors duration-200"
+            >
+              <div className="flex items-center gap-2">
+                <User className="w-6 h-6 text-[#1F5C8B] shrink-0" />
+                <span className="text-lg font-bold text-gray-900">{leitor.nome_completo}</span>
+              </div>
+              <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 ml-8">
+                <span className="text-base text-gray-600">Cadastro: {leitor.numero_cadastro}</span>
+                {leitor.telefone && (
+                  <span className="text-base text-gray-600 flex items-center gap-1">
+                    <Phone className="w-4 h-4" /> {leitor.telefone}
+                  </span>
+                )}
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+
       {loading ? (
         <div className="space-y-3">
           {Array.from({ length: 5 }).map((_, i) => (
             <Skeleton key={i} className="h-32 w-full rounded-lg" />
           ))}
         </div>
-      ) : filtered.length === 0 ? (
+      ) : filtered.length === 0 && leitorResults.length === 0 ? (
         <div className="text-center py-16">
           <BookOpen className="w-16 h-16 text-gray-300 mx-auto mb-4" />
           <p className="text-lg font-semibold text-gray-600">
@@ -167,6 +221,8 @@ export default function Emprestimos() {
               : 'Nenhum empréstimo ativo.'}
           </p>
         </div>
+      ) : filtered.length === 0 ? (
+        <div />
       ) : (
         <div className="space-y-3">
           {filtered.map((emp) => {
@@ -242,7 +298,15 @@ export default function Emprestimos() {
         </div>
       )}
 
-      <EmprestimoForm open={formOpen} onOpenChange={setFormOpen} onCreated={() => loadData()} />
+      <EmprestimoForm
+        open={formOpen}
+        onOpenChange={(open) => {
+          setFormOpen(open)
+          if (!open) setFormLeitor(null)
+        }}
+        onCreated={() => loadData()}
+        preselectedLeitor={formLeitor}
+      />
       <LeitorFicha
         leitorId={leitorFichaId}
         open={leitorFichaOpen}
