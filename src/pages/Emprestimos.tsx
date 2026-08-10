@@ -4,6 +4,7 @@ import { ArrowLeftRight, Search, BookOpen, User, Calendar, Plus, Phone } from 'l
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { EmprestimoForm } from '@/components/emprestimos/EmprestimoForm'
+import { EmprestimoDetalhes } from '@/components/emprestimos/EmprestimoDetalhes'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { LeitorFicha } from '@/components/usuarios/LeitorFicha'
@@ -49,6 +50,8 @@ export default function Emprestimos() {
   const [formOpen, setFormOpen] = useState(false)
   const [formLeitor, setFormLeitor] = useState<Leitor | null>(null)
   const [leitorResults, setLeitorResults] = useState<Leitor[]>([])
+  const [detalhesId, setDetalhesId] = useState<string | null>(null)
+  const [detalhesOpen, setDetalhesOpen] = useState(false)
 
   useEffect(() => {
     const q = search.trim()
@@ -123,6 +126,11 @@ export default function Emprestimos() {
   const openLivro = (id: string) => {
     setLivroFichaId(id)
     setLivroFichaOpen(true)
+  }
+
+  const openDetalhes = (id: string) => {
+    setDetalhesId(id)
+    setDetalhesOpen(true)
   }
 
   return (
@@ -231,8 +239,9 @@ export default function Emprestimos() {
             return (
               <div
                 key={emp.id}
+                onClick={() => openDetalhes(emp.id)}
                 className={cn(
-                  'bg-white border rounded-lg p-4 transition-all duration-200',
+                  'bg-white border rounded-lg p-4 transition-all duration-200 cursor-pointer hover:shadow-md',
                   situacao === 'atrasado'
                     ? 'border-red-200 bg-red-50/30'
                     : situacao === 'vence-hoje'
@@ -243,7 +252,10 @@ export default function Emprestimos() {
                 <div className="flex flex-col gap-4">
                   <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
                     <button
-                      onClick={() => emp.expand?.leitor && openLeitor(emp.expand.leitor.id)}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        emp.expand?.leitor && openLeitor(emp.expand.leitor.id)
+                      }}
                       className="flex items-start gap-3 text-left hover:opacity-80 transition-opacity flex-1"
                     >
                       <User className="w-6 h-6 text-[#1F5C8B] shrink-0 mt-0.5" />
@@ -257,7 +269,10 @@ export default function Emprestimos() {
                       </div>
                     </button>
                     <button
-                      onClick={() => emp.expand?.livro && openLivro(emp.expand.livro.id)}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        emp.expand?.livro && openLivro(emp.expand.livro.id)
+                      }}
                       className="flex items-start gap-3 text-left hover:opacity-80 transition-opacity flex-1"
                     >
                       <BookOpen className="w-6 h-6 text-[#1F5C8B] shrink-0 mt-0.5" />
@@ -313,6 +328,12 @@ export default function Emprestimos() {
         onOpenChange={setLeitorFichaOpen}
       />
       <LivroFicha livroId={livroFichaId} open={livroFichaOpen} onOpenChange={setLivroFichaOpen} />
+      <EmprestimoDetalhes
+        emprestimoId={detalhesId}
+        open={detalhesOpen}
+        onOpenChange={setDetalhesOpen}
+        onChanged={loadData}
+      />
     </div>
   )
 }

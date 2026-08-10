@@ -155,7 +155,7 @@ export interface EditarEmprestimoData {
   leitor: string
   livro: string
   tipo_emprestimo: 'comum' | 'estudo'
-  responsavel: string
+  voluntario_id: string
 }
 
 export const editarEmprestimo = async (

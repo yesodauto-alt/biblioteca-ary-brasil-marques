@@ -12,6 +12,7 @@ import {
 import { getMovementsFromEmprestimos, getAcaoLabel, type AuditMovement } from '@/services/auditoria'
 import { LeitorForm } from '@/components/usuarios/LeitorForm'
 import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog'
+import { EmprestimoDetalhes } from '@/components/emprestimos/EmprestimoDetalhes'
 import { Button } from '@/components/ui/button'
 import { Pencil, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
@@ -41,6 +42,8 @@ export function LeitorFicha({ leitorId, open, onOpenChange }: LeitorFichaProps) 
   const [editOpen, setEditOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [detalhesId, setDetalhesId] = useState<string | null>(null)
+  const [detalhesOpen, setDetalhesOpen] = useState(false)
 
   const handleDelete = async () => {
     if (!leitorId) return
@@ -229,8 +232,12 @@ export function LeitorFicha({ leitorId, open, onOpenChange }: LeitorFichaProps) 
                       return (
                         <div
                           key={emp.id}
+                          onClick={() => {
+                            setDetalhesId(emp.id)
+                            setDetalhesOpen(true)
+                          }}
                           className={cn(
-                            'border rounded-lg p-4',
+                            'border rounded-lg p-4 cursor-pointer hover:shadow-md transition-all duration-200',
                             situacao === 'atrasado'
                               ? 'bg-red-50/60 border-red-200'
                               : situacao === 'sem-data'
@@ -324,6 +331,12 @@ export function LeitorFicha({ leitorId, open, onOpenChange }: LeitorFichaProps) 
         onOpenChange={setDeleteOpen}
         onConfirm={handleDelete}
         loading={deleting}
+      />
+      <EmprestimoDetalhes
+        emprestimoId={detalhesId}
+        open={detalhesOpen}
+        onOpenChange={setDetalhesOpen}
+        onChanged={loadData}
       />
     </>
   )
