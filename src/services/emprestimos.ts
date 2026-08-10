@@ -1,6 +1,7 @@
 import pb from '@/lib/pocketbase/client'
 import { getLivroByCadastro } from '@/services/livros'
 import { getConfiguracoes } from '@/services/configuracoes'
+import { getVoluntario } from '@/services/voluntarios'
 
 export interface Emprestimo {
   id: string
@@ -100,9 +101,27 @@ export const getActiveEmprestimos = async (): Promise<EmprestimoWithLeitor[]> =>
 }
 
 export const getEmprestimo = async (id: string): Promise<EmprestimoWithLeitor> => {
-  return await pb.collection('emprestimos').getOne<EmprestimoWithLeitor>(id, {
-    expand: 'leitor,livro,responsavel_voluntario',
-  })
+  try {
+    return await pb.collection('emprestimos').getOne<EmprestimoWithLeitor>(id, {
+      expand: 'leitor,livro,responsavel_voluntario',
+    })
+  } catch {
+    const emprestimo = await pb.collection('emprestimos').getOne<EmprestimoWithLeitor>(id, {
+      expand: 'leitor,livro',
+    })
+    if (emprestimo.responsavel_voluntario) {
+      try {
+        const vol = await getVoluntario(emprestimo.responsavel_voluntario)
+        emprestimo.expand = {
+          ...emprestimo.expand,
+          responsavel_voluntario: { id: vol.id, nome: vol.nome, matricula: vol.matricula },
+        }
+      } catch {
+        /* volunteer record deleted — leave expand undefined */
+      }
+    }
+    return emprestimo
+  }
 }
 
 export const getActiveEmprestimoByLivroCadastro = async (
