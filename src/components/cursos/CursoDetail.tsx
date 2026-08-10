@@ -24,7 +24,6 @@ import {
 } from '@/services/cursos'
 import { getLivros, type Livro } from '@/services/livros'
 import { useRealtime } from '@/hooks/use-realtime'
-import { toast } from 'sonner'
 
 interface CursoDetailProps {
   curso: Curso | null
