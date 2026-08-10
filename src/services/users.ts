@@ -56,3 +56,7 @@ export const updateUser = async (id: string, data: UpdateUserData): Promise<User
   }
   return await pb.collection('users').update<User>(id, updateData)
 }
+
+export const deleteUser = async (id: string): Promise<void> => {
+  await pb.collection('users').delete(id)
+}

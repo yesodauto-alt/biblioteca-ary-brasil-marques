@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import { ArrowLeftRight, Search, BookOpen, User, Calendar } from 'lucide-react'
+import { ArrowLeftRight, Search, BookOpen, User, Calendar, Plus } from 'lucide-react'
+import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { EmprestimoForm } from '@/components/emprestimos/EmprestimoForm'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
 import { LeitorFicha } from '@/components/usuarios/LeitorFicha'
@@ -39,6 +41,7 @@ export default function Emprestimos() {
   const [leitorFichaOpen, setLeitorFichaOpen] = useState(false)
   const [livroFichaId, setLivroFichaId] = useState<string | null>(null)
   const [livroFichaOpen, setLivroFichaOpen] = useState(false)
+  const [formOpen, setFormOpen] = useState(false)
 
   const loadData = useCallback(async () => {
     try {
@@ -100,14 +103,22 @@ export default function Emprestimos() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-3">
-        <div className="w-12 h-12 rounded-xl bg-[#1F5C8B] flex items-center justify-center text-white shrink-0">
-          <ArrowLeftRight className="w-7 h-7" />
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-xl bg-[#1F5C8B] flex items-center justify-center text-white shrink-0">
+            <ArrowLeftRight className="w-7 h-7" />
+          </div>
+          <div>
+            <h2 className="text-2xl font-bold text-gray-900">Empréstimos</h2>
+            <p className="text-base text-gray-500">Empréstimos ativos da biblioteca</p>
+          </div>
         </div>
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Empréstimos</h2>
-          <p className="text-base text-gray-500">Empréstimos ativos da biblioteca</p>
-        </div>
+        <Button
+          onClick={() => setFormOpen(true)}
+          className="h-14 px-6 text-lg font-bold bg-[#1F5C8B] hover:bg-[#174A73] shadow-sm"
+        >
+          <Plus className="w-6 h-6 mr-2" />+ Novo empréstimo
+        </Button>
       </div>
 
       <div className="relative">
@@ -227,6 +238,7 @@ export default function Emprestimos() {
         </div>
       )}
 
+      <EmprestimoForm open={formOpen} onOpenChange={setFormOpen} onCreated={() => loadData()} />
       <LeitorFicha
         leitorId={leitorFichaId}
         open={leitorFichaOpen}

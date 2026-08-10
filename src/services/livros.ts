@@ -68,3 +68,11 @@ export const getLivroByCadastro = async (numeroCadastro: string): Promise<Livro>
 export const updateLivroStatus = async (id: string, status: LivroStatus): Promise<Livro> => {
   return await pb.collection('livros').update<Livro>(id, { status })
 }
+
+export const updateLivro = async (id: string, data: Partial<LivroFormData>): Promise<Livro> => {
+  return await pb.collection('livros').update<Livro>(id, data)
+}
+
+export const deleteLivro = async (id: string): Promise<void> => {
+  await pb.collection('livros').delete(id)
+}

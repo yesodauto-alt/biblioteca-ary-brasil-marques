@@ -1,10 +1,12 @@
 import { useState, useEffect, useCallback } from 'react'
-import { UserPlus, Pencil, Power, Loader2 } from 'lucide-react'
+import { UserPlus, Pencil, Power, Loader2, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
+import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog'
 import { VolunteerForm } from '@/components/configuracoes/VolunteerForm'
-import { getUsers, updateUser, type User } from '@/services/users'
+import { getUsers, updateUser, deleteUser, type User } from '@/services/users'
+import { hasActiveLoansByResponsavel } from '@/services/emprestimos'
 import { useAuth } from '@/hooks/use-auth'
 import { useRealtime } from '@/hooks/use-realtime'
 import { toast } from 'sonner'
@@ -16,6 +18,39 @@ export function VolunteerManagement() {
   const [formOpen, setFormOpen] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [togglingId, setTogglingId] = useState<string | null>(null)
+  const [userToDelete, setUserToDelete] = useState<User | null>(null)
+  const [deleteOpen, setDeleteOpen] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
+  const handleDeleteClick = (u: User) => {
+    if (u.id === currentUser?.id) {
+      toast.error('Você não pode excluir sua própria conta.')
+      return
+    }
+    setUserToDelete(u)
+    setDeleteOpen(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (!userToDelete) return
+    setDeleting(true)
+    try {
+      const hasActive = await hasActiveLoansByResponsavel(userToDelete.id)
+      if (hasActive) {
+        toast.error('Este voluntário é responsável por empréstimos ativos e não pode ser excluído.')
+        setDeleteOpen(false)
+        return
+      }
+      await deleteUser(userToDelete.id)
+      toast.success('Voluntário excluído com sucesso.')
+      setDeleteOpen(false)
+      setUserToDelete(null)
+    } catch {
+      toast.error('Erro ao excluir voluntário.')
+    } finally {
+      setDeleting(false)
+    }
+  }
 
   const loadData = useCallback(async () => {
     try {
@@ -134,6 +169,14 @@ export function VolunteerManagement() {
                 )}
                 {u.status === 'ativo' ? 'Inativar' : 'Ativar'}
               </Button>
+              <Button
+                variant="outline"
+                onClick={() => handleDeleteClick(u)}
+                className="h-12 px-4 text-base font-semibold border-red-300 text-red-600 hover:bg-red-50"
+              >
+                <Trash2 className="w-5 h-5 mr-1" />
+                Excluir
+              </Button>
             </div>
           </div>
         ))}
@@ -144,6 +187,12 @@ export function VolunteerManagement() {
         onOpenChange={setFormOpen}
         editingUser={editingUser}
         onSaved={() => toast.success('Dados salvos com sucesso.')}
+      />
+      <DeleteConfirmDialog
+        open={deleteOpen}
+        onOpenChange={setDeleteOpen}
+        onConfirm={handleDeleteConfirm}
+        loading={deleting}
       />
     </div>
   )

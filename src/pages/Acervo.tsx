@@ -151,7 +151,7 @@ export default function Acervo() {
       )}
 
       {/* New Book Form Dialog */}
-      <LivroForm open={formOpen} onOpenChange={setFormOpen} onCreated={handleCreated} />
+      <LivroForm open={formOpen} onOpenChange={setFormOpen} onSaved={handleCreated} />
 
       {/* Book Ficha Sheet */}
       <LivroFicha livroId={fichaId} open={fichaOpen} onOpenChange={setFichaOpen} />

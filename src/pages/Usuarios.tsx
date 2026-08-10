@@ -153,7 +153,7 @@ export default function Usuarios() {
       )}
 
       {/* New User Form Dialog */}
-      <LeitorForm open={formOpen} onOpenChange={setFormOpen} onCreated={handleCreated} />
+      <LeitorForm open={formOpen} onOpenChange={setFormOpen} onSaved={handleCreated} />
 
       {/* User Ficha Sheet */}
       <LeitorFicha leitorId={fichaId} open={fichaOpen} onOpenChange={setFichaOpen} />

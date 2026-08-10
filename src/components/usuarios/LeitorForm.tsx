@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { UserPlus, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,16 +11,17 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog'
-import { createLeitor, type LeitorFormData } from '@/services/leitores'
+import { createLeitor, updateLeitor, type LeitorFormData, type Leitor } from '@/services/leitores'
 import { extractFieldErrors, type FieldErrors } from '@/lib/pocketbase/errors'
 
 interface LeitorFormProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onCreated: () => void
+  onSaved: () => void
+  leitor?: Leitor | null
 }
 
-export function LeitorForm({ open, onOpenChange, onCreated }: LeitorFormProps) {
+export function LeitorForm({ open, onOpenChange, onSaved, leitor }: LeitorFormProps) {
   const [loading, setLoading] = useState(false)
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [form, setForm] = useState<LeitorFormData>({
@@ -32,6 +33,33 @@ export function LeitorForm({ open, onOpenChange, onCreated }: LeitorFormProps) {
     endereco: '',
     observacoes: '',
   })
+
+  useEffect(() => {
+    if (open) {
+      if (leitor) {
+        setForm({
+          numero_cadastro: leitor.numero_cadastro,
+          nome_completo: leitor.nome_completo,
+          telefone: leitor.telefone,
+          email: leitor.email || '',
+          data_nascimento: leitor.data_nascimento || '',
+          endereco: leitor.endereco || '',
+          observacoes: leitor.observacoes || '',
+        })
+      } else {
+        setForm({
+          numero_cadastro: '',
+          nome_completo: '',
+          telefone: '',
+          email: '',
+          data_nascimento: '',
+          endereco: '',
+          observacoes: '',
+        })
+      }
+      setFieldErrors({})
+    }
+  }, [open, leitor])
 
   const handleFieldChange = (field: keyof LeitorFormData, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -53,18 +81,13 @@ export function LeitorForm({ open, onOpenChange, onCreated }: LeitorFormProps) {
       if (form.endereco?.trim()) data.endereco = form.endereco.trim()
       if (form.observacoes?.trim()) data.observacoes = form.observacoes.trim()
 
-      await createLeitor(data)
-      onCreated()
+      if (leitor) {
+        await updateLeitor(leitor.id, data)
+      } else {
+        await createLeitor(data)
+      }
+      onSaved()
       onOpenChange(false)
-      setForm({
-        numero_cadastro: '',
-        nome_completo: '',
-        telefone: '',
-        email: '',
-        data_nascimento: '',
-        endereco: '',
-        observacoes: '',
-      })
     } catch (error) {
       setFieldErrors(extractFieldErrors(error))
     } finally {
@@ -76,9 +99,11 @@ export function LeitorForm({ open, onOpenChange, onCreated }: LeitorFormProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">Novo Usuário</DialogTitle>
+          <DialogTitle className="text-xl font-bold">
+            {leitor ? 'Editar Usuário' : 'Novo Usuário'}
+          </DialogTitle>
           <DialogDescription className="text-base">
-            Cadastre um novo leitor da biblioteca.
+            {leitor ? 'Edite os dados do leitor.' : 'Cadastre um novo leitor da biblioteca.'}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -208,7 +233,7 @@ export function LeitorForm({ open, onOpenChange, onCreated }: LeitorFormProps) {
               ) : (
                 <UserPlus className="w-5 h-5 mr-2" />
               )}
-              Cadastrar
+              {leitor ? 'Salvar' : 'Cadastrar'}
             </Button>
           </div>
         </form>

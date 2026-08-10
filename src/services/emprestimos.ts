@@ -138,3 +138,36 @@ export const renovarEmprestimo = async (
     quantidade_renovacoes: existing.quantidade_renovacoes + 1,
   })
 }
+
+export const hasActiveLoansByLeitor = async (leitorId: string): Promise<boolean> => {
+  try {
+    await pb
+      .collection('emprestimos')
+      .getFirstListItem(`leitor = "${leitorId}" && (status = "ativo" || status = "atrasado")`)
+    return true
+  } catch {
+    return false
+  }
+}
+
+export const hasActiveLoansByLivro = async (livroId: string): Promise<boolean> => {
+  try {
+    await pb
+      .collection('emprestimos')
+      .getFirstListItem(`livro = "${livroId}" && (status = "ativo" || status = "atrasado")`)
+    return true
+  } catch {
+    return false
+  }
+}
+
+export const hasActiveLoansByResponsavel = async (userId: string): Promise<boolean> => {
+  try {
+    await pb
+      .collection('emprestimos')
+      .getFirstListItem(`responsavel = "${userId}" && (status = "ativo" || status = "atrasado")`)
+    return true
+  } catch {
+    return false
+  }
+}

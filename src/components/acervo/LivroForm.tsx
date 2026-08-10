@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { BookPlus, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -11,16 +11,17 @@ import {
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog'
-import { createLivro, type LivroFormData } from '@/services/livros'
+import { createLivro, updateLivro, type LivroFormData, type Livro } from '@/services/livros'
 import { extractFieldErrors, type FieldErrors } from '@/lib/pocketbase/errors'
 
 interface LivroFormProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  onCreated: () => void
+  onSaved: () => void
+  livro?: Livro | null
 }
 
-export function LivroForm({ open, onOpenChange, onCreated }: LivroFormProps) {
+export function LivroForm({ open, onOpenChange, onSaved, livro }: LivroFormProps) {
   const [loading, setLoading] = useState(false)
   const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
   const [form, setForm] = useState<LivroFormData>({
@@ -32,6 +33,33 @@ export function LivroForm({ open, onOpenChange, onCreated }: LivroFormProps) {
     localizacao_fisica: '',
     observacoes: '',
   })
+
+  useEffect(() => {
+    if (open) {
+      if (livro) {
+        setForm({
+          numero_cadastro: livro.numero_cadastro,
+          titulo: livro.titulo,
+          autor: livro.autor,
+          editora: livro.editora,
+          categoria: livro.categoria || '',
+          localizacao_fisica: livro.localizacao_fisica || '',
+          observacoes: livro.observacoes || '',
+        })
+      } else {
+        setForm({
+          numero_cadastro: '',
+          titulo: '',
+          autor: '',
+          editora: '',
+          categoria: '',
+          localizacao_fisica: '',
+          observacoes: '',
+        })
+      }
+      setFieldErrors({})
+    }
+  }, [open, livro])
 
   const handleFieldChange = (field: keyof LivroFormData, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }))
@@ -53,18 +81,13 @@ export function LivroForm({ open, onOpenChange, onCreated }: LivroFormProps) {
       if (form.localizacao_fisica?.trim()) data.localizacao_fisica = form.localizacao_fisica.trim()
       if (form.observacoes?.trim()) data.observacoes = form.observacoes.trim()
 
-      await createLivro(data)
-      onCreated()
+      if (livro) {
+        await updateLivro(livro.id, data)
+      } else {
+        await createLivro(data)
+      }
+      onSaved()
       onOpenChange(false)
-      setForm({
-        numero_cadastro: '',
-        titulo: '',
-        autor: '',
-        editora: '',
-        categoria: '',
-        localizacao_fisica: '',
-        observacoes: '',
-      })
     } catch (error) {
       setFieldErrors(extractFieldErrors(error))
     } finally {
@@ -76,9 +99,13 @@ export function LivroForm({ open, onOpenChange, onCreated }: LivroFormProps) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">Novo Livro</DialogTitle>
+          <DialogTitle className="text-xl font-bold">
+            {livro ? 'Editar Livro' : 'Novo Livro'}
+          </DialogTitle>
           <DialogDescription className="text-base">
-            Cadastre um novo livro no acervo da biblioteca.
+            {livro
+              ? 'Edite os dados do livro no acervo.'
+              : 'Cadastre um novo livro no acervo da biblioteca.'}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -208,7 +235,7 @@ export function LivroForm({ open, onOpenChange, onCreated }: LivroFormProps) {
               ) : (
                 <BookPlus className="w-5 h-5 mr-2" />
               )}
-              Cadastrar
+              {livro ? 'Salvar' : 'Cadastrar'}
             </Button>
           </div>
         </form>

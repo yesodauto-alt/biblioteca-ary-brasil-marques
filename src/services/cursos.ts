@@ -74,3 +74,11 @@ export const getLinkedLivroIds = async (cursoId: string): Promise<string[]> => {
   })
   return links.map((l) => l.livro)
 }
+
+export const hasCursoActiveLoans = async (cursoId: string): Promise<boolean> => {
+  const links = await getCursoLivros(cursoId)
+  for (const link of links) {
+    if (link.expand?.livro?.status === 'emprestado') return true
+  }
+  return false
+}
