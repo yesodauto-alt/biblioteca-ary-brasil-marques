@@ -32,6 +32,9 @@ export function LivroForm({ open, onOpenChange, onSaved, livro }: LivroFormProps
     categoria: '',
     localizacao_fisica: '',
     observacoes: '',
+    cod: '',
+    descricao: '',
+    cutter: '',
   })
 
   useEffect(() => {
@@ -45,6 +48,9 @@ export function LivroForm({ open, onOpenChange, onSaved, livro }: LivroFormProps
           categoria: livro.categoria || '',
           localizacao_fisica: livro.localizacao_fisica || '',
           observacoes: livro.observacoes || '',
+          cod: livro.cod || '',
+          descricao: livro.descricao || '',
+          cutter: livro.cutter || '',
         })
       } else {
         setForm({
@@ -55,6 +61,9 @@ export function LivroForm({ open, onOpenChange, onSaved, livro }: LivroFormProps
           categoria: '',
           localizacao_fisica: '',
           observacoes: '',
+          cod: '',
+          descricao: '',
+          cutter: '',
         })
       }
       setFieldErrors({})
@@ -80,6 +89,9 @@ export function LivroForm({ open, onOpenChange, onSaved, livro }: LivroFormProps
       if (form.categoria?.trim()) data.categoria = form.categoria.trim()
       if (form.localizacao_fisica?.trim()) data.localizacao_fisica = form.localizacao_fisica.trim()
       if (form.observacoes?.trim()) data.observacoes = form.observacoes.trim()
+      if (form.cod?.trim()) data.cod = form.cod.trim()
+      if (form.descricao?.trim()) data.descricao = form.descricao.trim()
+      if (form.cutter?.trim()) data.cutter = form.cutter.trim()
 
       if (livro) {
         await updateLivro(livro.id, data)
@@ -188,6 +200,55 @@ export function LivroForm({ open, onOpenChange, onSaved, livro }: LivroFormProps
               className="h-12 text-base"
               placeholder="Ex: Romance, Espiritismo, Infantil..."
             />
+          </div>
+
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-2">
+              <Label htmlFor="cod" className="text-base font-semibold">
+                COD (opcional)
+              </Label>
+              <Input
+                id="cod"
+                value={form.cod}
+                onChange={(e) => handleFieldChange('cod', e.target.value)}
+                className="h-12 text-base"
+                placeholder="Ex: FCX"
+              />
+              {fieldErrors.cod && (
+                <p className="text-sm text-red-500 font-medium">{fieldErrors.cod}</p>
+              )}
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cutter" className="text-base font-semibold">
+                CUTTER (opcional)
+              </Label>
+              <Input
+                id="cutter"
+                value={form.cutter}
+                onChange={(e) => handleFieldChange('cutter', e.target.value)}
+                className="h-12 text-base"
+                placeholder="Ex: C-001"
+              />
+              {fieldErrors.cutter && (
+                <p className="text-sm text-red-500 font-medium">{fieldErrors.cutter}</p>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="descricao" className="text-base font-semibold">
+              Descrição do COD (opcional)
+            </Label>
+            <Input
+              id="descricao"
+              value={form.descricao}
+              onChange={(e) => handleFieldChange('descricao', e.target.value)}
+              className="h-12 text-base"
+              placeholder="Ex: Francisco Cândido Xavier"
+            />
+            {fieldErrors.descricao && (
+              <p className="text-sm text-red-500 font-medium">{fieldErrors.descricao}</p>
+            )}
           </div>
 
           <div className="space-y-2">

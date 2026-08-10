@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react'
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from '@/components/ui/sheet'
 import { Badge } from '@/components/ui/badge'
 import { Skeleton } from '@/components/ui/skeleton'
-import { BookOpen, Calendar, Library, MapPin, StickyNote, User, Building2, Tag } from 'lucide-react'
+import { BookOpen, Calendar, Library, StickyNote, User, Building2, Tag } from 'lucide-react'
 import {
   getLivro,
   updateLivro,
@@ -114,6 +114,40 @@ export function LivroFicha({ livroId, open, onOpenChange }: LivroFichaProps) {
                 </div>
               </div>
 
+              <div className="bg-white border-2 border-[#1F5C8B]/20 rounded-lg p-4">
+                <p className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">
+                  Localização Física
+                </p>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">Livro nº</p>
+                    <p className="text-base font-bold text-[#1F5C8B]">{livro.numero_cadastro}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">COD</p>
+                    <p className="text-base font-bold text-gray-900">{livro.cod || '—'}</p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">Descrição</p>
+                    <p className="text-base font-semibold text-gray-900">
+                      {livro.descricao || '—'}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-500 font-medium">CUTTER</p>
+                    <p className="text-base font-bold text-gray-900">{livro.cutter || '—'}</p>
+                  </div>
+                </div>
+                {livro.localizacao_fisica && (
+                  <div className="mt-3 pt-3 border-t border-gray-100">
+                    <p className="text-xs text-gray-500 font-medium">Localização na Estante</p>
+                    <p className="text-base font-semibold text-gray-900">
+                      {livro.localizacao_fisica}
+                    </p>
+                  </div>
+                )}
+              </div>
+
               <div className="flex gap-3">
                 <Button
                   onClick={() => setEditOpen(true)}
@@ -154,18 +188,6 @@ export function LivroFicha({ livroId, open, onOpenChange }: LivroFichaProps) {
                     <div>
                       <p className="text-sm text-gray-500 font-medium">Categoria</p>
                       <p className="text-base font-semibold text-gray-900">{livro.categoria}</p>
-                    </div>
-                  </div>
-                )}
-
-                {livro.localizacao_fisica && (
-                  <div className="flex items-start gap-3">
-                    <MapPin className="w-5 h-5 text-[#1F5C8B] shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-sm text-gray-500 font-medium">Localização</p>
-                      <p className="text-base font-semibold text-gray-900">
-                        {livro.localizacao_fisica}
-                      </p>
                     </div>
                   </div>
                 )}

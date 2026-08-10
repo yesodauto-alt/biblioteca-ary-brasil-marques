@@ -11,6 +11,9 @@ export interface Livro {
   categoria: string
   localizacao_fisica: string
   observacoes: string
+  cod: string
+  descricao: string
+  cutter: string
   status: LivroStatus
   created: string
   updated: string
@@ -24,6 +27,9 @@ export interface LivroFormData {
   categoria?: string
   localizacao_fisica?: string
   observacoes?: string
+  cod?: string
+  descricao?: string
+  cutter?: string
 }
 
 export const STATUS_LABELS: Record<LivroStatus, string> = {

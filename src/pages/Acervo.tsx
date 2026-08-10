@@ -49,7 +49,10 @@ export default function Acervo() {
         l.numero_cadastro.toLowerCase().includes(q) ||
         l.titulo.toLowerCase().includes(q) ||
         l.autor.toLowerCase().includes(q) ||
-        l.editora.toLowerCase().includes(q)
+        l.editora.toLowerCase().includes(q) ||
+        (l.cod || '').toLowerCase().includes(q) ||
+        (l.descricao || '').toLowerCase().includes(q) ||
+        (l.cutter || '').toLowerCase().includes(q)
       )
     })
   }, [livros, search, statusFilter])
