@@ -22,6 +22,11 @@ export interface Emprestimo {
       autor: string
       numero_cadastro: string
     }
+    responsavel?: {
+      id: string
+      name: string
+      matricula: string
+    }
   }
 }
 
@@ -29,7 +34,7 @@ export const getEmprestimosByLeitor = async (leitorId: string): Promise<Empresti
   return await pb.collection('emprestimos').getFullList<Emprestimo>({
     filter: `leitor = "${leitorId}"`,
     sort: '-data_emprestimo',
-    expand: 'livro',
+    expand: 'livro,responsavel',
   })
 }
 
@@ -53,7 +58,7 @@ export const getEmprestimosByLivro = async (livroId: string): Promise<Emprestimo
   return await pb.collection('emprestimos').getFullList<EmprestimoWithLeitor>({
     filter: `livro = "${livroId}"`,
     sort: '-data_emprestimo',
-    expand: 'leitor',
+    expand: 'leitor,responsavel',
   })
 }
 

@@ -23,11 +23,11 @@ export const IMPORT_CONFIGS: Record<string, ImportConfig> = {
       { name: 'email', label: 'E-mail', required: false, type: 'email' },
       { name: 'data_nascimento', label: 'Data de Nascimento', required: false, type: 'date' },
       { name: 'endereco', label: 'Endereço', required: false, type: 'text' },
-      { name: 'data_cadastro', label: 'Data de Cadastro', required: false, type: 'date' },
+      { name: 'data_cadastro', label: 'Data de Cadastro', required: true, type: 'date' },
       {
         name: 'status',
         label: 'Status',
-        required: false,
+        required: true,
         type: 'select',
         options: ['ativo', 'inativo'],
       },
@@ -43,17 +43,17 @@ export const IMPORT_CONFIGS: Record<string, ImportConfig> = {
       { name: 'autor', label: 'Autor', required: true, type: 'text' },
       { name: 'editora', label: 'Editora', required: true, type: 'text' },
       { name: 'categoria', label: 'Categoria', required: false, type: 'text' },
-      { name: 'cod', label: 'COD', required: false, type: 'text' },
+      { name: 'cdd', label: 'CDD', required: false, type: 'text' },
       { name: 'descricao', label: 'Descrição', required: false, type: 'text' },
       { name: 'cutter', label: 'CUTTER', required: false, type: 'text' },
-      { name: 'observacoes', label: 'Observações', required: false, type: 'text' },
       {
         name: 'status',
         label: 'Status',
-        required: false,
+        required: true,
         type: 'select',
         options: ['disponível', 'emprestado', 'manutenção', 'extraviado', 'baixado'],
       },
+      { name: 'observacoes', label: 'Observações', required: false, type: 'text' },
     ],
   },
 }
@@ -78,15 +78,20 @@ export function autoMapColumns(headers: string[], importType: string): Record<st
   if (!config) return {}
   const mapping: Record<string, string> = {}
   for (const header of headers) {
-    const norm = header.toLowerCase().trim()
-    const field = config.fields.find(
-      (f) =>
-        f.name === norm ||
-        f.label.toLowerCase() === norm ||
-        f.name.replace(/_/g, ' ') === norm ||
-        f.name.replace(/_/g, '') === norm.replace(/\s/g, ''),
-    )
-    if (field) mapping[header] = field.name
+    const normalized = header.toLowerCase().trim()
+    for (const field of config.fields) {
+      const fieldLabel = field.label.toLowerCase().replace(/\s+/g, '_')
+      const fieldName = field.name.toLowerCase()
+      if (
+        normalized === fieldName ||
+        normalized === fieldLabel ||
+        normalized.includes(fieldName) ||
+        normalized.includes(fieldLabel)
+      ) {
+        mapping[header] = field.name
+        break
+      }
+    }
   }
   return mapping
 }
@@ -96,20 +101,16 @@ export function mapRecords(
   rows: string[][],
   mapping: Record<string, string>,
 ): MappedRecord[] {
-  return rows.map((row, index) => {
+  return rows.map((row, rowIndex) => {
     const data: Record<string, string> = {}
     headers.forEach((header, i) => {
-      const target = mapping[header]
-      if (target) data[target] = (row[i] || '').trim()
+      const fieldName = mapping[header]
+      if (fieldName) {
+        data[fieldName] = row[i] || ''
+      }
     })
-    return { rowIndex: index + 2, data }
+    return { rowIndex, data }
   })
-}
-
-function normalizeDate(value: string): string {
-  const m = value.match(/^(\d{2})\/(\d{2})\/(\d{4})$/)
-  if (m) return `${m[3]}-${m[2]}-${m[1]}`
-  return value
 }
 
 export function validateRecords(
@@ -118,70 +119,40 @@ export function validateRecords(
   existing: Set<string>,
 ): ValidationResult {
   const config = IMPORT_CONFIGS[importType]
+  if (!config) return { valid: [], problems: [] }
   const valid: MappedRecord[] = []
   const problems: { record: MappedRecord; issues: ValidationIssue[] }[] = []
-  const seen = new Set<string>()
-
   for (const record of records) {
     const issues: ValidationIssue[] = []
-
     for (const field of config.fields) {
-      if (!field.required) continue
-      const val = record.data[field.name]
-      if (!val || val.trim() === '') {
+      if (field.required && !record.data[field.name]?.trim()) {
         issues.push({ field: field.name, message: `${field.label} é obrigatório` })
       }
     }
-
-    const num = record.data.numero_cadastro
-    if (num) {
-      if (seen.has(num)) {
-        issues.push({ field: 'numero_cadastro', message: 'Duplicado no arquivo' })
-      } else {
-        seen.add(num)
-      }
-      if (existing.has(num)) {
-        issues.push({ field: 'numero_cadastro', message: 'Já cadastrado no sistema' })
-      }
+    if (record.data.numero_cadastro && existing.has(record.data.numero_cadastro)) {
+      issues.push({ field: 'numero_cadastro', message: 'Número de cadastro já existe' })
     }
-
-    for (const field of config.fields) {
-      const val = record.data[field.name]
-      if (!val || val.trim() === '') continue
-      if (field.type === 'email' && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val)) {
-        issues.push({ field: field.name, message: 'E-mail inválido' })
-      } else if (
-        field.type === 'date' &&
-        !/^\d{4}-\d{2}-\d{2}$/.test(val) &&
-        !/^\d{2}\/\d{2}\/\d{4}$/.test(val)
-      ) {
-        issues.push({ field: field.name, message: 'Data inválida (use DD/MM/AAAA)' })
-      } else if (field.type === 'select' && field.options && !field.options.includes(val)) {
-        issues.push({ field: field.name, message: `Use: ${field.options.join(', ')}` })
-      }
+    if (issues.length > 0) {
+      problems.push({ record, issues })
+    } else {
+      valid.push(record)
     }
-
-    if (issues.length > 0) problems.push({ record, issues })
-    else valid.push(record)
   }
-
   return { valid, problems }
 }
 
 export function normalizeRecord(record: MappedRecord, importType: string): Record<string, string> {
   const config = IMPORT_CONFIGS[importType]
-  const data: Record<string, string> = {}
+  if (!config) return record.data
+  const normalized: Record<string, string> = {}
   for (const field of config.fields) {
-    const val = record.data[field.name]
-    if (val !== undefined && val !== '') {
-      data[field.name] = field.type === 'date' ? normalizeDate(val) : val
+    const value = record.data[field.name]?.trim() || ''
+    if (value) {
+      normalized[field.name] = value
     }
   }
-  if (importType === 'leitores') {
-    if (!data.data_cadastro) data.data_cadastro = new Date().toISOString().split('T')[0]
-    if (!data.status) data.status = 'ativo'
-  } else {
-    if (!data.status) data.status = 'disponível'
+  if (!normalized.status) {
+    normalized.status = importType === 'leitores' ? 'ativo' : 'disponível'
   }
-  return data
+  return normalized
 }

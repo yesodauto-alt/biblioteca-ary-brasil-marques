@@ -125,6 +125,7 @@ export function VolunteerManagement() {
           >
             <div className="space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-sm font-bold text-[#1F5C8B]">{u.matricula || '—'}</span>
                 <span className="text-base font-semibold text-gray-900">{u.name}</span>
                 <Badge
                   className={

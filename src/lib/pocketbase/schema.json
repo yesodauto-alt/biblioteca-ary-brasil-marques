@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-10T01:43:00.463Z",
+  "generatedAt": "2026-08-10T02:03:20.428Z",
   "collections": [
     {
       "name": "users",
@@ -51,11 +51,18 @@
           "required": true,
           "system": false,
           "selectValues": ["ativo", "inativo"]
+        },
+        {
+          "name": "matricula",
+          "type": "text",
+          "required": false,
+          "system": false
         }
       ],
       "indexes": [
         "CREATE UNIQUE INDEX `idx_tokenKey__pb_users_auth_` ON `users` (`tokenKey`)",
-        "CREATE UNIQUE INDEX `idx_email__pb_users_auth_` ON `users` (`email`) WHERE `email` != ''"
+        "CREATE UNIQUE INDEX `idx_email__pb_users_auth_` ON `users` (`email`) WHERE `email` != ''",
+        "CREATE UNIQUE INDEX `idx_users_matricula` ON `users` (matricula) WHERE matricula != \"\""
       ]
     },
     {
@@ -213,12 +220,6 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate", "onUpdate"]
-        },
-        {
-          "name": "cod",
-          "type": "text",
-          "required": false,
-          "system": false
         },
         {
           "name": "descricao",

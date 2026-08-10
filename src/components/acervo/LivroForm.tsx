@@ -47,7 +47,7 @@ export function LivroForm({ open, onOpenChange, onSaved, livro }: LivroFormProps
     editora: '',
     categoria: '',
     observacoes: '',
-    cod: '',
+    cdd: '',
     descricao: '',
     cutter: '',
     status: 'disponível',
@@ -63,7 +63,7 @@ export function LivroForm({ open, onOpenChange, onSaved, livro }: LivroFormProps
           editora: livro.editora,
           categoria: livro.categoria || '',
           observacoes: livro.observacoes || '',
-          cod: livro.cod || '',
+          cdd: livro.cdd || '',
           descricao: livro.descricao || '',
           cutter: livro.cutter || '',
           status: livro.status,
@@ -76,7 +76,7 @@ export function LivroForm({ open, onOpenChange, onSaved, livro }: LivroFormProps
           editora: '',
           categoria: '',
           observacoes: '',
-          cod: '',
+          cdd: '',
           descricao: '',
           cutter: '',
           status: 'disponível',
@@ -105,7 +105,7 @@ export function LivroForm({ open, onOpenChange, onSaved, livro }: LivroFormProps
       }
       if (form.categoria?.trim()) data.categoria = form.categoria.trim()
       if (form.observacoes?.trim()) data.observacoes = form.observacoes.trim()
-      if (form.cod?.trim()) data.cod = form.cod.trim()
+      if (form.cdd?.trim()) data.cdd = form.cdd.trim()
       if (form.descricao?.trim()) data.descricao = form.descricao.trim()
       if (form.cutter?.trim()) data.cutter = form.cutter.trim()
 
@@ -220,19 +220,19 @@ export function LivroForm({ open, onOpenChange, onSaved, livro }: LivroFormProps
 
           <div className="grid grid-cols-2 gap-3">
             <div className="space-y-2">
-              <Label htmlFor="cod" className="text-base font-semibold">
-                COD (opcional)
+              <Label htmlFor="cdd" className="text-base font-semibold">
+                CDD (opcional)
               </Label>
               <Input
-                id="cod"
-                value={form.cod}
-                onChange={(e) => handleFieldChange('cod', e.target.value)}
+                id="cdd"
+                value={form.cdd}
+                onChange={(e) => handleFieldChange('cdd', e.target.value)}
                 className="h-12 text-base"
                 placeholder="Ex: FCX"
               />
-              {fieldErrors.cod && (
-                <p className="text-sm text-red-500 font-medium">{fieldErrors.cod}</p>
-              )}
+              {fieldErrors.cdd && (
+                <p className="text-sm text-red-500 font-medium">{fieldErrors.cdd}</p>
+              )}{' '}
             </div>
             <div className="space-y-2">
               <Label htmlFor="cutter" className="text-base font-semibold">

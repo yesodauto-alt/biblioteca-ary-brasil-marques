@@ -1,62 +1,94 @@
 import pb from '@/lib/pocketbase/client'
+import type { Emprestimo } from '@/services/emprestimos'
 
-export interface AuditoriaRecord {
+export interface AuditMovement {
   id: string
   acao: string
-  entidade: string
-  registro_id: string
-  usuario: string
-  detalhes: string
   created: string
-  expand?: {
-    usuario?: {
-      id: string
-      name: string
-    }
-  }
+  volunteerName: string
+  volunteerMatricula: string
+  bookTitle: string
+  bookNumeroCadastro: string
+  leitorNome: string
+  leitorNumeroCadastro: string
 }
 
-export const ACAO_LABELS_LEITOR: Record<string, string> = {
-  emprestimo: 'Empréstimo',
-  renovacao: 'Renovação',
-  devolucao: 'Devolução',
+const ACAO_LABELS: Record<string, string> = {
   criacao: 'Criação',
   alteracao: 'Alteração',
-  mudanca_status: 'Mudança de status',
+  emprestimo: 'Empréstimo',
+  devolucao: 'Devolução',
+  renovacao: 'Renovação',
+  mudanca_status: 'Mudança de Status',
 }
 
-export const ACAO_LABELS_LIVRO: Record<string, string> = {
-  emprestimo: 'Emprestado',
-  renovacao: 'Renovado',
-  devolucao: 'Devolvido',
-  criacao: 'Criado',
-  alteracao: 'Alterado',
-  mudanca_status: 'Status alterado',
+export function getAcaoLabel(acao: string): string {
+  if (acao === 'criacao') return 'Empréstimo'
+  return ACAO_LABELS[acao] || acao
 }
 
-export const getAuditoriaByEmprestimoIds = async (ids: string[]): Promise<AuditoriaRecord[]> => {
-  if (ids.length === 0) return []
-  const batches: AuditoriaRecord[] = []
-  for (let i = 0; i < ids.length; i += 30) {
-    const batch = ids.slice(i, i + 30)
-    const filter = batch.map((id) => `registro_id = "${id}"`).join(' || ')
-    const records = await pb.collection('auditoria').getFullList<AuditoriaRecord>({
-      filter,
-      sort: 'created',
-      expand: 'usuario',
-    })
-    batches.push(...records)
+function makeMovementFromEmprestimo(emp: Emprestimo): AuditMovement {
+  return {
+    id: emp.id,
+    acao: 'emprestimo',
+    created: emp.created,
+    volunteerName: emp.expand?.responsavel?.name || '—',
+    volunteerMatricula: emp.expand?.responsavel?.matricula || '—',
+    bookTitle: emp.expand?.livro?.titulo || '—',
+    bookNumeroCadastro: emp.expand?.livro?.numero_cadastro || '—',
+    leitorNome: emp.expand?.leitor?.nome_completo || '—',
+    leitorNumeroCadastro: emp.expand?.leitor?.numero_cadastro || '—',
   }
-  return batches.sort((a, b) => new Date(a.created).getTime() - new Date(b.created).getTime())
 }
 
-export function groupAuditByRegistro(
-  records: AuditoriaRecord[],
-): Record<string, AuditoriaRecord[]> {
-  const map: Record<string, AuditoriaRecord[]> = {}
-  for (const r of records) {
-    if (!map[r.registro_id]) map[r.registro_id] = []
-    map[r.registro_id].push(r)
+function makeMovementFromAudit(audit: any, emp?: Emprestimo): AuditMovement {
+  return {
+    id: audit.id,
+    acao: audit.acao === 'criacao' ? 'emprestimo' : audit.acao,
+    created: audit.created,
+    volunteerName: audit.expand?.usuario?.name || emp?.expand?.responsavel?.name || '—',
+    volunteerMatricula:
+      audit.expand?.usuario?.matricula || emp?.expand?.responsavel?.matricula || '—',
+    bookTitle: emp?.expand?.livro?.titulo || '—',
+    bookNumeroCadastro: emp?.expand?.livro?.numero_cadastro || '—',
+    leitorNome: emp?.expand?.leitor?.nome_completo || '—',
+    leitorNumeroCadastro: emp?.expand?.leitor?.numero_cadastro || '—',
   }
-  return map
+}
+
+export async function getMovementsFromEmprestimos(
+  emprestimos: Emprestimo[],
+): Promise<AuditMovement[]> {
+  if (emprestimos.length === 0) return []
+
+  const empMap = new Map(emprestimos.map((e) => [e.id, e]))
+  const ids = Array.from(empMap.keys())
+  const filterParts = ids.map((id) => `registro_id = "${id}"`)
+  const chunkSize = 30
+  const allAudits: any[] = []
+
+  for (let i = 0; i < filterParts.length; i += chunkSize) {
+    const chunk = filterParts.slice(i, i + chunkSize).join(' || ')
+    try {
+      const records = await pb.collection('auditoria').getFullList({
+        filter: chunk,
+        sort: '-created',
+        expand: 'usuario',
+      })
+      allAudits.push(...records)
+    } catch {
+      // ignore
+    }
+  }
+
+  if (allAudits.length === 0) {
+    return emprestimos.map(makeMovementFromEmprestimo)
+  }
+
+  allAudits.sort((a, b) => b.created.localeCompare(a.created))
+
+  return allAudits.map((audit) => {
+    const emp = empMap.get(audit.registro_id)
+    return makeMovementFromAudit(audit, emp)
+  })
 }

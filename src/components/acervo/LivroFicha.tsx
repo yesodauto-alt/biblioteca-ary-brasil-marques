@@ -5,7 +5,6 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { BookOpen, Calendar, Library, StickyNote, User, Building2, Tag } from 'lucide-react'
 import {
   getLivro,
-  updateLivro,
   deleteLivro,
   STATUS_LABELS,
   STATUS_BADGE_CLASSES,
@@ -16,11 +15,13 @@ import {
   hasActiveLoansByLivro,
   type EmprestimoWithLeitor,
 } from '@/services/emprestimos'
+import { getMovementsFromEmprestimos, getAcaoLabel, type AuditMovement } from '@/services/auditoria'
 import { LivroForm } from '@/components/acervo/LivroForm'
 import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog'
 import { Button } from '@/components/ui/button'
 import { Pencil, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
+import { formatDateTime } from '@/lib/loan-utils'
 
 interface LivroFichaProps {
   livroId: string | null
@@ -28,15 +29,10 @@ interface LivroFichaProps {
   onOpenChange: (open: boolean) => void
 }
 
-function formatDate(dateStr: string): string {
-  if (!dateStr) return '—'
-  const date = new Date(dateStr + 'T00:00:00')
-  return date.toLocaleDateString('pt-BR')
-}
-
 export function LivroFicha({ livroId, open, onOpenChange }: LivroFichaProps) {
   const [livro, setLivro] = useState<Livro | null>(null)
   const [emprestimos, setEmprestimos] = useState<EmprestimoWithLeitor[]>([])
+  const [movements, setMovements] = useState<AuditMovement[]>([])
   const [loading, setLoading] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
@@ -63,19 +59,25 @@ export function LivroFicha({ livroId, open, onOpenChange }: LivroFichaProps) {
     }
   }
 
-  const loadData = useCallback(() => {
+  const loadData = useCallback(async () => {
     if (!livroId) {
       setLivro(null)
       setEmprestimos([])
+      setMovements([])
       return
     }
     setLoading(true)
-    Promise.all([getLivro(livroId), getEmprestimosByLivro(livroId)])
-      .then(([l, emps]) => {
-        setLivro(l)
-        setEmprestimos(emps)
-      })
-      .finally(() => setLoading(false))
+    try {
+      const [l, emps] = await Promise.all([getLivro(livroId), getEmprestimosByLivro(livroId)])
+      setLivro(l)
+      setEmprestimos(emps)
+      const movs = await getMovementsFromEmprestimos(emps)
+      setMovements(movs)
+    } catch {
+      // ignore
+    } finally {
+      setLoading(false)
+    }
   }, [livroId])
 
   useEffect(() => {
@@ -97,11 +99,9 @@ export function LivroFicha({ livroId, open, onOpenChange }: LivroFichaProps) {
               <Skeleton className="h-8 w-3/4" />
               <Skeleton className="h-6 w-1/2" />
               <Skeleton className="h-6 w-2/3" />
-              <Skeleton className="h-6 w-1/2" />
             </div>
           ) : livro ? (
             <div className="mt-6 space-y-6">
-              {/* Header info */}
               <div className="bg-[#1F5C8B]/5 rounded-lg p-4 border border-[#1F5C8B]/15">
                 <h2 className="text-2xl font-bold text-gray-900 break-words">{livro.titulo}</h2>
                 <div className="flex items-center gap-2 mt-2 flex-wrap">
@@ -120,8 +120,8 @@ export function LivroFicha({ livroId, open, onOpenChange }: LivroFichaProps) {
                 </p>
                 <div className="grid grid-cols-2 gap-3">
                   <div>
-                    <p className="text-xs text-gray-500 font-medium">COD</p>
-                    <p className="text-base font-bold text-gray-900">{livro.cod || '—'}</p>
+                    <p className="text-xs text-gray-500 font-medium">CDD</p>
+                    <p className="text-base font-bold text-gray-900">{livro.cdd || '—'}</p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-500 font-medium">CUTTER</p>
@@ -152,7 +152,6 @@ export function LivroFicha({ livroId, open, onOpenChange }: LivroFichaProps) {
                 </Button>
               </div>
 
-              {/* Book details */}
               <div className="space-y-3">
                 <div className="flex items-start gap-3">
                   <User className="w-5 h-5 text-[#1F5C8B] shrink-0 mt-0.5" />
@@ -161,7 +160,6 @@ export function LivroFicha({ livroId, open, onOpenChange }: LivroFichaProps) {
                     <p className="text-base font-semibold text-gray-900">{livro.autor}</p>
                   </div>
                 </div>
-
                 <div className="flex items-start gap-3">
                   <Building2 className="w-5 h-5 text-[#1F5C8B] shrink-0 mt-0.5" />
                   <div>
@@ -169,7 +167,6 @@ export function LivroFicha({ livroId, open, onOpenChange }: LivroFichaProps) {
                     <p className="text-base font-semibold text-gray-900">{livro.editora}</p>
                   </div>
                 </div>
-
                 {livro.categoria && (
                   <div className="flex items-start gap-3">
                     <Tag className="w-5 h-5 text-[#1F5C8B] shrink-0 mt-0.5" />
@@ -179,7 +176,6 @@ export function LivroFicha({ livroId, open, onOpenChange }: LivroFichaProps) {
                     </div>
                   </div>
                 )}
-
                 {livro.observacoes && (
                   <div className="flex items-start gap-3">
                     <StickyNote className="w-5 h-5 text-[#1F5C8B] shrink-0 mt-0.5" />
@@ -193,87 +189,55 @@ export function LivroFicha({ livroId, open, onOpenChange }: LivroFichaProps) {
                 )}
               </div>
 
-              {/* Active loan details when emprestado */}
               {livro.status === 'emprestado' && activeLoan && (
                 <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
                   <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
-                    <BookOpen className="w-5 h-5 text-[#1F5C8B]" />
-                    Livro Emprestado
+                    <BookOpen className="w-5 h-5 text-[#1F5C8B]" /> Livro Emprestado
                   </h3>
-                  <div className="space-y-3">
-                    <div className="flex items-start gap-3">
-                      <User className="w-5 h-5 text-[#1F5C8B] shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-sm text-gray-500 font-medium">Leitor</p>
-                        <p className="text-base font-semibold text-gray-900">
-                          {activeLoan.expand?.leitor?.nome_completo || 'Leitor não encontrado'}
-                        </p>
-                        <p className="text-sm text-gray-600">
-                          Nº {activeLoan.expand?.leitor?.numero_cadastro || '—'}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <Calendar className="w-5 h-5 text-[#1F5C8B] shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-sm text-gray-500 font-medium">Data do Empréstimo</p>
-                        <p className="text-base font-semibold text-gray-900">
-                          {formatDate(activeLoan.data_emprestimo)}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <Calendar className="w-5 h-5 text-[#1F5C8B] shrink-0 mt-0.5" />
-                      <div>
-                        <p className="text-sm text-gray-500 font-medium">Devolução Prevista</p>
-                        <p className="text-base font-semibold text-gray-900">
-                          {formatDate(activeLoan.data_prevista_devolucao)}
-                        </p>
-                      </div>
-                    </div>
+                  <div className="space-y-2">
+                    <p className="text-base font-semibold text-gray-900">
+                      {activeLoan.expand?.leitor?.nome_completo || 'Leitor não encontrado'}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Nº {activeLoan.expand?.leitor?.numero_cadastro || '—'}
+                    </p>
+                    <p className="text-sm text-gray-600">
+                      Devolução prevista: {formatDateTime(activeLoan.data_prevista_devolucao)}
+                    </p>
+                    {activeLoan.expand?.responsavel && (
+                      <p className="text-sm text-gray-600">
+                        Responsável: {activeLoan.expand.responsavel.matricula || '—'} —{' '}
+                        {activeLoan.expand.responsavel.name}
+                      </p>
+                    )}
                   </div>
                 </div>
               )}
 
-              {/* Loan history */}
               <div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
-                  <Library className="w-5 h-5 text-[#1F5C8B]" />
-                  Histórico de Empréstimos
+                  <Library className="w-5 h-5 text-[#1F5C8B]" /> Movimentos
                 </h3>
-                {emprestimos.length === 0 ? (
-                  <p className="text-base text-gray-500 italic">Nenhum empréstimo registrado.</p>
+                {movements.length === 0 ? (
+                  <p className="text-base text-gray-500 italic">Nenhum movimento registrado.</p>
                 ) : (
                   <div className="space-y-2">
-                    {emprestimos.map((emp) => (
-                      <div key={emp.id} className="bg-white border border-gray-200 rounded-lg p-3">
+                    {movements.map((mov) => (
+                      <div key={mov.id} className="bg-white border border-gray-200 rounded-lg p-3">
                         <div className="flex items-center justify-between gap-2">
-                          <p className="text-base font-semibold text-gray-900">
-                            {emp.expand?.leitor?.nome_completo || 'Leitor não encontrado'}
-                          </p>
-                          <Badge
-                            className={
-                              emp.status === 'ativo'
-                                ? 'bg-blue-100 text-blue-800 hover:bg-blue-100 shrink-0'
-                                : emp.status === 'atrasado'
-                                  ? 'bg-red-100 text-red-800 hover:bg-red-100 shrink-0'
-                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-100 shrink-0'
-                            }
-                          >
-                            {emp.status === 'ativo'
-                              ? 'Ativo'
-                              : emp.status === 'atrasado'
-                                ? 'Atrasado'
-                                : 'Devolvido'}
+                          <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 shrink-0">
+                            {getAcaoLabel(mov.acao)}
                           </Badge>
+                          <span className="text-sm text-gray-500">
+                            {formatDateTime(mov.created)}
+                          </span>
                         </div>
-                        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-gray-600">
-                          <span>Empréstimo: {formatDate(emp.data_emprestimo)}</span>
-                          <span>Previsto: {formatDate(emp.data_prevista_devolucao)}</span>
-                          {emp.data_devolucao_real && (
-                            <span>Devolvido: {formatDate(emp.data_devolucao_real)}</span>
-                          )}
-                        </div>
+                        <p className="text-base font-semibold text-gray-900 mt-1">
+                          Usuário: {mov.leitorNome}
+                        </p>
+                        <p className="text-sm text-gray-600">
+                          Responsável: {mov.volunteerMatricula} — {mov.volunteerName}
+                        </p>
                       </div>
                     ))}
                   </div>

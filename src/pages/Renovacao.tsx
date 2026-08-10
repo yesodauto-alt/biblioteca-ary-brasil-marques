@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { RefreshCw, BookOpen, Calendar, CheckCircle2, X, ArrowLeft, Loader2 } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { VolunteerSelect } from '@/components/volunteers/VolunteerSelect'
 import { getErrorMessage } from '@/lib/pocketbase/errors'
 import { type Leitor } from '@/services/leitores'
 import { getEmprestimosByLeitor, renovarEmprestimo, type Emprestimo } from '@/services/emprestimos'
@@ -29,6 +30,7 @@ export default function Renovacao() {
   const [config, setConfig] = useState<ConfigType | null>(null)
   const [selectedLoan, setSelectedLoan] = useState<Emprestimo | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [selectedVoluntario, setSelectedVoluntario] = useState('')
 
   useEffect(() => {
     getConfiguracoes()
@@ -52,17 +54,23 @@ export default function Renovacao() {
     setSelectedLeitor(leitor)
     setSelectedLoan(null)
     setSuccess(null)
+    setSelectedVoluntario('')
     loadLoans(leitor.id)
   }
 
   const handleRenew = async () => {
     if (!selectedLoan || !config) return
+    if (!selectedVoluntario) {
+      toast.error('Selecione o voluntário responsável por esta operação.')
+      return
+    }
     setRenewing(true)
     try {
       const novaData = calcNewReturnDate(selectedLoan.tipo_emprestimo, config.prazo_devolucao_dias)
-      await renovarEmprestimo(selectedLoan.id, novaData)
+      await renovarEmprestimo(selectedLoan.id, novaData, selectedVoluntario)
       setSuccess(`Empréstimo renovado com sucesso. Nova devolução: ${formatDate(novaData)}.`)
       setSelectedLoan(null)
+      setSelectedVoluntario('')
       if (selectedLeitor) loadLoans(selectedLeitor.id)
     } catch (err) {
       toast.error(getErrorMessage(err))
@@ -116,6 +124,7 @@ export default function Renovacao() {
                     setActiveLoans([])
                     setSelectedLoan(null)
                     setSuccess(null)
+                    setSelectedVoluntario('')
                   }}
                   className="text-gray-500"
                 >
@@ -195,7 +204,7 @@ export default function Renovacao() {
             </div>
 
             {selectedLoan && config && (
-              <div className="bg-[#1F5C8B]/5 border border-[#1F5C8B]/20 rounded-lg p-4 space-y-3">
+              <div className="bg-[#1F5C8B]/5 border border-[#1F5C8B]/20 rounded-lg p-4 space-y-4">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-bold text-gray-900">Confirmar Renovação</h3>
                   <Button variant="ghost" size="sm" onClick={() => setSelectedLoan(null)}>
@@ -213,9 +222,10 @@ export default function Renovacao() {
                     )}
                   </span>
                 </p>
+                <VolunteerSelect value={selectedVoluntario} onChange={setSelectedVoluntario} />
                 <Button
                   onClick={handleRenew}
-                  disabled={renewing}
+                  disabled={renewing || !selectedVoluntario}
                   className="w-full h-11 text-sm font-semibold bg-[#1F5C8B] hover:bg-[#174A73]"
                 >
                   {renewing ? (

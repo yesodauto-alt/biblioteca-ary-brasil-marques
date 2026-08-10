@@ -9,6 +9,7 @@ export interface User {
   email: string
   role: UserRole
   status: UserStatus
+  matricula: string
   created: string
   updated: string
 }

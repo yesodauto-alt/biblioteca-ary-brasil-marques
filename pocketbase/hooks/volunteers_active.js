@@ -3,13 +3,7 @@ routerAdd(
   '/backend/v1/volunteers/active',
   (e) => {
     try {
-      var records = $app.findRecordsByFilter(
-        'users',
-        'role = "voluntário" && status = "ativo"',
-        'name',
-        0,
-        0,
-      )
+      var records = $app.findRecordsByFilter('users', 'status = "ativo"', 'name', 0, 0)
       var result = records.map(function (rec) {
         return {
           id: rec.getString('id'),
@@ -17,6 +11,7 @@ routerAdd(
           email: rec.getString('email'),
           role: rec.getString('role'),
           status: rec.getString('status'),
+          matricula: rec.getString('matricula'),
         }
       })
       return e.json(200, result)

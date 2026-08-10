@@ -10,7 +10,7 @@ export interface Livro {
   editora: string
   categoria: string
   observacoes: string
-  cod: string
+  cdd: string
   descricao: string
   cutter: string
   status: LivroStatus
@@ -26,7 +26,7 @@ export interface LivroFormData {
   categoria?: string
   observacoes?: string
   status?: LivroStatus
-  cod?: string
+  cdd?: string
   descricao?: string
   cutter?: string
 }
@@ -48,9 +48,7 @@ export const STATUS_BADGE_CLASSES: Record<LivroStatus, string> = {
 }
 
 export const getLivros = async (): Promise<Livro[]> => {
-  return await pb.collection('livros').getFullList<Livro>({
-    sort: 'titulo',
-  })
+  return await pb.collection('livros').getFullList<Livro>({ sort: 'titulo' })
 }
 
 export const getLivro = async (id: string): Promise<Livro> => {
@@ -58,16 +56,23 @@ export const getLivro = async (id: string): Promise<Livro> => {
 }
 
 export const createLivro = async (data: LivroFormData): Promise<Livro> => {
-  return await pb.collection('livros').create<Livro>({
-    status: 'disponível',
-    ...data,
-  })
+  return await pb.collection('livros').create<Livro>({ status: 'disponível', ...data })
 }
 
 export const getLivroByCadastro = async (numeroCadastro: string): Promise<Livro> => {
   return await pb
     .collection('livros')
     .getFirstListItem<Livro>(`numero_cadastro = "${numeroCadastro}"`)
+}
+
+export const searchLivrosForLoan = async (query: string): Promise<Livro[]> => {
+  const q = query.trim()
+  if (!q) return []
+  const result = await pb.collection('livros').getList<Livro>(1, 20, {
+    filter: `numero_cadastro ~ "${q}" || titulo ~ "${q}"`,
+    sort: 'titulo',
+  })
+  return result.items
 }
 
 export const updateLivroStatus = async (id: string, status: LivroStatus): Promise<Livro> => {

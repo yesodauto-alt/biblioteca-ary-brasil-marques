@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Loader2, AlertCircle, Plus, ArrowLeft } from 'lucide-react'
+import { Loader2, AlertCircle, Plus, ArrowLeft, Search } from 'lucide-react'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -7,12 +7,18 @@ import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
 import { LeitorSearch } from '@/components/usuarios/LeitorSearch'
 import { VolunteerSelect } from '@/components/volunteers/VolunteerSelect'
-import { getLivroByCadastro, updateLivroStatus, type Livro } from '@/services/livros'
+import {
+  searchLivrosForLoan,
+  updateLivroStatus,
+  STATUS_LABELS,
+  STATUS_BADGE_CLASSES,
+  type Livro,
+} from '@/services/livros'
 import { createEmprestimo, getEmprestimosByLeitor, type Emprestimo } from '@/services/emprestimos'
 import { getConfiguracoes, type Configuracoes } from '@/services/configuracoes'
-import { useAuth } from '@/hooks/use-auth'
 import { toast } from 'sonner'
 import type { Leitor } from '@/services/leitores'
+import { cn } from '@/lib/utils'
 
 function formatDate(dateStr: string): string {
   if (!dateStr) return '—'
@@ -32,17 +38,16 @@ export function EmprestimoForm({
   onCreated,
   preselectedLeitor,
 }: EmprestimoFormProps) {
-  const { user } = useAuth()
   const [leitor, setLeitor] = useState<Leitor | null>(null)
   const [bookSearch, setBookSearch] = useState('')
+  const [bookResults, setBookResults] = useState<Livro[]>([])
   const [foundLivro, setFoundLivro] = useState<Livro | null>(null)
-  const [bookError, setBookError] = useState<string | null>(null)
+  const [bookSearching, setBookSearching] = useState(false)
   const [tipo, setTipo] = useState<'comum' | 'estudo'>('comum')
   const [selectedVoluntario, setSelectedVoluntario] = useState('')
   const [config, setConfig] = useState<Configuracoes | null>(null)
   const [activeLoans, setActiveLoans] = useState<Emprestimo[]>([])
   const [submitting, setSubmitting] = useState(false)
-  const [bookLooking, setBookLooking] = useState(false)
 
   useEffect(() => {
     getConfiguracoes()
@@ -62,12 +67,32 @@ export function EmprestimoForm({
         setActiveLoans([])
       }
       setBookSearch('')
+      setBookResults([])
       setFoundLivro(null)
-      setBookError(null)
       setTipo('comum')
       setSelectedVoluntario('')
     }
   }, [open, preselectedLeitor])
+
+  useEffect(() => {
+    const q = bookSearch.trim()
+    if (!q || foundLivro) {
+      setBookResults([])
+      setBookSearching(false)
+      return
+    }
+    setBookSearching(true)
+    const timer = setTimeout(async () => {
+      try {
+        setBookResults(await searchLivrosForLoan(q))
+      } catch {
+        setBookResults([])
+      } finally {
+        setBookSearching(false)
+      }
+    }, 300)
+    return () => clearTimeout(timer)
+  }, [bookSearch, foundLivro])
 
   const handleLeitorSelected = async (l: Leitor) => {
     setLeitor(l)
@@ -75,27 +100,6 @@ export function EmprestimoForm({
       setActiveLoans(await getEmprestimosByLeitor(l.id))
     } catch {
       setActiveLoans([])
-    }
-  }
-
-  const handleBookLookup = async () => {
-    const num = bookSearch.trim()
-    if (!num) return
-    setBookLooking(true)
-    setBookError(null)
-    try {
-      const livro = await getLivroByCadastro(num)
-      if (livro.status !== 'disponível') {
-        setBookError('Este livro não está disponível para empréstimo.')
-        setFoundLivro(null)
-      } else {
-        setFoundLivro(livro)
-      }
-    } catch {
-      setBookError('Livro não encontrado.')
-      setFoundLivro(null)
-    } finally {
-      setBookLooking(false)
     }
   }
 
@@ -109,7 +113,7 @@ export function EmprestimoForm({
   const wouldExceed = tipo === 'comum' ? comumCount >= limiteComum : estudoCount >= 1
 
   const handleSubmit = async () => {
-    if (!leitor || !foundLivro || !user || wouldExceed) return
+    if (!leitor || !foundLivro || wouldExceed) return
     if (!selectedVoluntario) {
       toast.error('Selecione o voluntário responsável por esta operação.')
       return
@@ -179,31 +183,90 @@ export function EmprestimoForm({
             </div>
 
             <div className="space-y-2">
-              <Label className="text-base font-semibold">2. Digite o número do livro</Label>
-              <Input
-                value={bookSearch}
-                onChange={(e) => {
-                  setBookSearch(e.target.value)
-                  setFoundLivro(null)
-                  setBookError(null)
-                }}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault()
-                    handleBookLookup()
-                  }
-                }}
-                placeholder="Digite o número e pressione ENTER..."
-                className="h-11 text-base border-gray-200"
-                autoFocus
-              />
-              {bookLooking && <p className="text-sm text-gray-500">Buscando livro...</p>}
-              {bookError && (
-                <p className="text-sm text-red-500 font-medium flex items-center gap-1">
-                  <AlertCircle className="w-4 h-4" />
-                  {bookError}
-                </p>
+              <Label className="text-base font-semibold">2. Buscar livro</Label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                <Input
+                  value={bookSearch}
+                  onChange={(e) => {
+                    setBookSearch(e.target.value)
+                    setFoundLivro(null)
+                  }}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') e.preventDefault()
+                  }}
+                  placeholder="Digite o número ou título do livro..."
+                  className="h-11 pl-10 text-base border-gray-200"
+                  autoFocus
+                />
+              </div>
+              {bookSearching && <p className="text-sm text-gray-500">Buscando livros...</p>}
+              {bookResults.length > 0 && (
+                <div className="space-y-2 max-h-60 overflow-y-auto">
+                  {bookResults.map((livro) => {
+                    const isAvailable = livro.status === 'disponível'
+                    return (
+                      <button
+                        key={livro.id}
+                        type="button"
+                        onClick={() => {
+                          if (isAvailable) {
+                            setFoundLivro(livro)
+                            setBookSearch('')
+                            setBookResults([])
+                          }
+                        }}
+                        disabled={!isAvailable}
+                        className={cn(
+                          'w-full text-left p-3 rounded-lg border-2 transition-all duration-150',
+                          isAvailable
+                            ? 'border-gray-200 hover:border-[#1F5C8B]/40 hover:bg-[#1F5C8B]/5 cursor-pointer'
+                            : 'border-gray-200 opacity-50 cursor-not-allowed',
+                        )}
+                      >
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="min-w-0">
+                            <span className="text-base font-bold text-[#1F5C8B]">
+                              {livro.numero_cadastro}
+                            </span>
+                            <span className="text-base font-semibold text-gray-900 ml-2 break-words">
+                              {livro.titulo}
+                            </span>
+                            <span className="text-sm text-gray-600 ml-2">{livro.autor}</span>
+                          </div>
+                          <Badge className={cn('shrink-0', STATUS_BADGE_CLASSES[livro.status])}>
+                            {STATUS_LABELS[livro.status]}
+                          </Badge>
+                        </div>
+                      </button>
+                    )
+                  })}
+                </div>
               )}
+              {bookSearch && bookResults.length === 0 && !bookSearching && (
+                <p className="text-sm text-gray-500">Nenhum livro encontrado.</p>
+              )}
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            <div className="bg-[#1F5C8B]/5 rounded-lg p-4 border border-[#1F5C8B]/15 space-y-3">
+              <p className="text-sm font-semibold text-green-700">✓ Livro selecionado</p>
+              <div>
+                <p className="text-sm text-gray-500 font-medium">Usuário</p>
+                <p className="text-base font-bold text-gray-900">{leitor!.nome_completo}</p>
+                <p className="text-sm text-gray-600">Nº {leitor!.numero_cadastro}</p>
+              </div>
+              <div>
+                <p className="text-sm text-gray-500 font-medium">Livro</p>
+                <p className="text-base font-bold text-gray-900">{foundLivro.titulo}</p>
+                <p className="text-sm text-gray-600">
+                  Nº {foundLivro.numero_cadastro} · {foundLivro.autor}
+                </p>
+                <Badge className={cn('mt-1', STATUS_BADGE_CLASSES[foundLivro.status])}>
+                  {STATUS_LABELS[foundLivro.status]}
+                </Badge>
+              </div>
             </div>
 
             <div className="space-y-2">
@@ -212,22 +275,20 @@ export function EmprestimoForm({
                 <Button
                   variant={tipo === 'comum' ? 'default' : 'outline'}
                   onClick={() => setTipo('comum')}
-                  className={
-                    tipo === 'comum'
-                      ? 'flex-1 h-11 text-sm font-medium bg-[#1F5C8B] hover:bg-[#174A73]'
-                      : 'flex-1 h-11 text-sm font-medium'
-                  }
+                  className={cn(
+                    'flex-1 h-11 text-sm font-medium',
+                    tipo === 'comum' && 'bg-[#1F5C8B] hover:bg-[#174A73]',
+                  )}
                 >
                   Comum
                 </Button>
                 <Button
                   variant={tipo === 'estudo' ? 'default' : 'outline'}
                   onClick={() => setTipo('estudo')}
-                  className={
-                    tipo === 'estudo'
-                      ? 'flex-1 h-11 text-sm font-medium bg-[#1F5C8B] hover:bg-[#174A73]'
-                      : 'flex-1 h-11 text-sm font-medium'
-                  }
+                  className={cn(
+                    'flex-1 h-11 text-sm font-medium',
+                    tipo === 'estudo' && 'bg-[#1F5C8B] hover:bg-[#174A73]',
+                  )}
                 >
                   Estudo
                 </Button>
@@ -243,36 +304,10 @@ export function EmprestimoForm({
             </div>
 
             <VolunteerSelect value={selectedVoluntario} onChange={setSelectedVoluntario} />
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <div className="bg-[#1F5C8B]/5 rounded-lg p-4 border border-[#1F5C8B]/15 space-y-3">
-              <div>
-                <p className="text-sm text-gray-500 font-medium">Usuário</p>
-                <p className="text-base font-bold text-gray-900">{leitor.nome_completo}</p>
-                <p className="text-sm text-gray-600">Nº {leitor.numero_cadastro}</p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-500 font-medium">Livro</p>
-                <p className="text-base font-bold text-gray-900">{foundLivro.titulo}</p>
-                <p className="text-sm text-gray-600">
-                  Nº {foundLivro.numero_cadastro} · {foundLivro.autor}
-                </p>
-              </div>
-              <div className="flex items-center gap-2 pt-2 border-t border-gray-200">
-                <Badge
-                  className={
-                    tipo === 'estudo'
-                      ? 'bg-purple-100 text-purple-800 hover:bg-purple-100'
-                      : 'bg-blue-100 text-blue-800 hover:bg-blue-100'
-                  }
-                >
-                  {tipo === 'estudo' ? 'Estudo' : 'Comum'}
-                </Badge>
-                <span className="text-sm text-gray-600">
-                  Devolução prevista: {formatDate(returnDate)}
-                </span>
-              </div>
+
+            <div className="bg-gray-50 rounded-lg p-3 border border-gray-200">
+              <p className="text-sm text-gray-500 font-medium">Devolução prevista</p>
+              <p className="text-base font-bold text-gray-900">{formatDate(returnDate)}</p>
             </div>
 
             <div className="flex gap-3">
@@ -288,7 +323,7 @@ export function EmprestimoForm({
               </Button>
               <Button
                 onClick={handleSubmit}
-                disabled={submitting}
+                disabled={submitting || !selectedVoluntario || wouldExceed}
                 className="flex-1 h-11 text-sm font-semibold bg-[#1F5C8B] hover:bg-[#174A73]"
               >
                 {submitting ? (

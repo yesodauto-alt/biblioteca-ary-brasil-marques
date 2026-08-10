@@ -50,7 +50,7 @@ export default function Acervo() {
         l.titulo.toLowerCase().includes(q) ||
         l.autor.toLowerCase().includes(q) ||
         l.editora.toLowerCase().includes(q) ||
-        (l.cod || '').toLowerCase().includes(q) ||
+        (l.cdd || '').toLowerCase().includes(q) ||
         (l.descricao || '').toLowerCase().includes(q) ||
         (l.cutter || '').toLowerCase().includes(q)
       )
@@ -125,7 +125,7 @@ export default function Acervo() {
             <span>Cadastro</span>
             <span>Título</span>
             <span>Autor</span>
-            <span>COD</span>
+            <span>CDD</span>
             <span>Descrição</span>
             <span>Cutter</span>
             <span>Status</span>
@@ -145,7 +145,7 @@ export default function Acervo() {
               </span>
               <span className="text-base text-gray-700 break-words">{livro.autor}</span>
               <span className="text-sm font-semibold text-gray-700 break-words">
-                {livro.cod || '—'}
+                {livro.cdd || '—'}
               </span>
               <span className="text-sm text-gray-600 break-words">{livro.descricao || '—'}</span>
               <span className="text-sm font-semibold text-gray-700 break-words">

@@ -9,6 +9,7 @@ import {
   hasActiveLoansByLeitor,
   type Emprestimo,
 } from '@/services/emprestimos'
+import { getMovementsFromEmprestimos, getAcaoLabel, type AuditMovement } from '@/services/auditoria'
 import { LeitorForm } from '@/components/usuarios/LeitorForm'
 import { DeleteConfirmDialog } from '@/components/DeleteConfirmDialog'
 import { Button } from '@/components/ui/button'
@@ -16,6 +17,7 @@ import { Pencil, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useRealtime } from '@/hooks/use-realtime'
 import { cn } from '@/lib/utils'
+import { formatDateTime } from '@/lib/loan-utils'
 
 interface LeitorFichaProps {
   leitorId: string | null
@@ -25,8 +27,7 @@ interface LeitorFichaProps {
 
 function formatDate(dateStr: string): string {
   if (!dateStr) return '—'
-  const date = new Date(dateStr + 'T00:00:00')
-  return date.toLocaleDateString('pt-BR')
+  return new Date(dateStr + 'T00:00:00').toLocaleDateString('pt-BR')
 }
 
 function getSituacao(dataPrevista: string): string {
@@ -51,6 +52,7 @@ const TIPO_LABELS: Record<string, string> = { comum: 'Comum', estudo: 'Estudo' }
 export function LeitorFicha({ leitorId, open, onOpenChange }: LeitorFichaProps) {
   const [leitor, setLeitor] = useState<Leitor | null>(null)
   const [emprestimos, setEmprestimos] = useState<Emprestimo[]>([])
+  const [movements, setMovements] = useState<AuditMovement[]>([])
   const [loading, setLoading] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
@@ -77,19 +79,25 @@ export function LeitorFicha({ leitorId, open, onOpenChange }: LeitorFichaProps) 
     }
   }
 
-  const loadData = useCallback(() => {
+  const loadData = useCallback(async () => {
     if (!leitorId) {
       setLeitor(null)
       setEmprestimos([])
+      setMovements([])
       return
     }
     setLoading(true)
-    Promise.all([getLeitor(leitorId), getEmprestimosByLeitor(leitorId)])
-      .then(([l, emps]) => {
-        setLeitor(l)
-        setEmprestimos(emps)
-      })
-      .finally(() => setLoading(false))
+    try {
+      const [l, emps] = await Promise.all([getLeitor(leitorId), getEmprestimosByLeitor(leitorId)])
+      setLeitor(l)
+      setEmprestimos(emps)
+      const movs = await getMovementsFromEmprestimos(emps)
+      setMovements(movs)
+    } catch {
+      // ignore
+    } finally {
+      setLoading(false)
+    }
   }, [leitorId])
 
   useEffect(() => {
@@ -118,8 +126,6 @@ export function LeitorFicha({ leitorId, open, onOpenChange }: LeitorFichaProps) 
           {loading ? (
             <div className="space-y-4 mt-4">
               <Skeleton className="h-8 w-3/4" />
-              <Skeleton className="h-6 w-1/2" />
-              <Skeleton className="h-6 w-2/3" />
               <Skeleton className="h-6 w-1/2" />
             </div>
           ) : leitor ? (
@@ -223,8 +229,7 @@ export function LeitorFicha({ leitorId, open, onOpenChange }: LeitorFichaProps) 
 
               <div>
                 <h3 className="text-lg font-bold text-gray-900 mb-2 flex items-center gap-2">
-                  <BookOpen className="w-5 h-5 text-[#1F5C8B]" />
-                  Empréstimos ativos
+                  <BookOpen className="w-5 h-5 text-[#1F5C8B]" /> Empréstimos ativos
                 </h3>
                 {activeLoans.length === 0 ? (
                   <p className="text-base text-gray-500 italic">
@@ -264,6 +269,12 @@ export function LeitorFicha({ leitorId, open, onOpenChange }: LeitorFichaProps) 
                               Situação:{' '}
                               <Badge className={SITUACAO_BADGE[situacao]}>{situacao}</Badge>
                             </p>
+                            {emp.expand?.responsavel && (
+                              <p className="text-sm text-gray-600">
+                                Responsável: {emp.expand.responsavel.matricula || '—'} —{' '}
+                                {emp.expand.responsavel.name}
+                              </p>
+                            )}
                           </div>
                         </div>
                       )
@@ -278,40 +289,28 @@ export function LeitorFicha({ leitorId, open, onOpenChange }: LeitorFichaProps) 
               </div>
 
               <div>
-                <h3 className="text-lg font-bold text-gray-900 mb-2">Histórico de Empréstimos</h3>
-                {emprestimos.length === 0 ? (
-                  <p className="text-base text-gray-500 italic">Nenhum empréstimo registrado.</p>
+                <h3 className="text-lg font-bold text-gray-900 mb-2">Movimentos</h3>
+                {movements.length === 0 ? (
+                  <p className="text-base text-gray-500 italic">Nenhum movimento registrado.</p>
                 ) : (
                   <div className="space-y-2">
-                    {emprestimos.map((emp) => (
-                      <div key={emp.id} className="bg-white border border-gray-200 rounded-lg p-3">
+                    {movements.map((mov) => (
+                      <div key={mov.id} className="bg-white border border-gray-200 rounded-lg p-3">
                         <div className="flex items-center justify-between gap-2">
-                          <p className="text-base font-semibold text-gray-900">
-                            {emp.expand?.livro?.titulo || 'Livro não encontrado'}
-                          </p>
-                          <Badge
-                            className={
-                              emp.status === 'ativo'
-                                ? 'bg-blue-100 text-blue-800 hover:bg-blue-100 shrink-0'
-                                : emp.status === 'atrasado'
-                                  ? 'bg-red-100 text-red-800 hover:bg-red-100 shrink-0'
-                                  : 'bg-gray-100 text-gray-700 hover:bg-gray-100 shrink-0'
-                            }
-                          >
-                            {emp.status === 'ativo'
-                              ? 'Ativo'
-                              : emp.status === 'atrasado'
-                                ? 'Atrasado'
-                                : 'Devolvido'}
+                          <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100 shrink-0">
+                            {getAcaoLabel(mov.acao)}
                           </Badge>
+                          <span className="text-sm text-gray-500">
+                            {formatDateTime(mov.created)}
+                          </span>
                         </div>
-                        <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-gray-600">
-                          <span>Empréstimo: {formatDate(emp.data_emprestimo)}</span>
-                          <span>Previsto: {formatDate(emp.data_prevista_devolucao)}</span>
-                          {emp.data_devolucao_real && (
-                            <span>Devolvido: {formatDate(emp.data_devolucao_real)}</span>
-                          )}
-                        </div>
+                        <p className="text-base font-semibold text-gray-900 mt-1">
+                          {mov.bookTitle}
+                        </p>
+                        <p className="text-sm text-gray-600">Nº {mov.bookNumeroCadastro}</p>
+                        <p className="text-sm text-gray-600">
+                          Responsável: {mov.volunteerMatricula} — {mov.volunteerName}
+                        </p>
                       </div>
                     ))}
                   </div>

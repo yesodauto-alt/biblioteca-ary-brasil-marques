@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Loader2, UserPlus } from 'lucide-react'
+import { Loader2, UserPlus, BadgeCheck } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -106,6 +106,15 @@ export function VolunteerForm({ open, onOpenChange, editingUser, onSaved }: Volu
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
+          {editingUser?.matricula && (
+            <div className="bg-[#1F5C8B]/5 border border-[#1F5C8B]/15 rounded-lg p-3 flex items-center gap-2">
+              <BadgeCheck className="w-5 h-5 text-[#1F5C8B] shrink-0" />
+              <div>
+                <p className="text-sm text-gray-500 font-medium">Matrícula</p>
+                <p className="text-base font-bold text-[#1F5C8B]">{editingUser.matricula}</p>
+              </div>
+            </div>
+          )}
           <div className="space-y-2">
             <Label className="text-base font-semibold">Nome *</Label>
             <Input
