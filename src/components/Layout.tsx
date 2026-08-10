@@ -18,6 +18,7 @@ import {
   LogOut,
   Menu,
 } from 'lucide-react'
+import { DateTimeIndicator } from '@/components/DateTimeIndicator'
 
 interface NavItem {
   to: string
@@ -112,11 +113,16 @@ export default function Layout() {
           </SheetContent>
         </Sheet>
         <h1 className="text-base font-bold text-[#1F5C8B]">Biblioteca</h1>
-        <div className="w-10" />
+        <DateTimeIndicator />
       </div>
 
-      <main className="md:ml-64 p-4 md:p-6 max-w-[1400px]">
-        <Outlet />
+      <main className="md:ml-64 max-w-[1400px]">
+        <div className="hidden md:flex items-center justify-end px-6 py-2 bg-white border-b border-gray-100 sticky top-0 z-20">
+          <DateTimeIndicator />
+        </div>
+        <div className="p-4 md:p-6">
+          <Outlet />
+        </div>
       </main>
     </div>
   )

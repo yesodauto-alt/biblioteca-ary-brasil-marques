@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-10T03:37:03.284Z",
+  "generatedAt": "2026-08-10T03:49:02.012Z",
   "collections": [
     {
       "name": "users",
@@ -329,7 +329,7 @@
         {
           "name": "quantidade_renovacoes",
           "type": "number",
-          "required": true,
+          "required": false,
           "system": false
         }
       ],
