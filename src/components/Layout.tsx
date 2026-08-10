@@ -19,6 +19,7 @@ import {
   Menu,
 } from 'lucide-react'
 import { DateTimeIndicator } from '@/components/DateTimeIndicator'
+import logoImg from '@/assets/image-fd362.png'
 
 interface NavItem {
   to: string
@@ -49,9 +50,12 @@ function SidebarContent({ onNavigate }: { onNavigate?: () => void }) {
 
   return (
     <div className="flex flex-col h-full">
-      <div className="px-5 py-5 shrink-0">
-        <h1 className="text-lg font-bold text-[#1F5C8B] tracking-tight">Biblioteca</h1>
-        <p className="text-xs text-gray-400 mt-0.5">Centro Espírita</p>
+      <div className="px-5 py-4 shrink-0">
+        <img
+          src={logoImg}
+          alt="Biblioteca - Centro Espírita"
+          className="h-11 w-auto max-w-full object-contain object-left"
+        />
       </div>
       <nav className="flex-1 px-2 space-y-1 overflow-y-auto">
         {items.map((item) => {
@@ -112,7 +116,11 @@ export default function Layout() {
             <SidebarContent onNavigate={() => setOpen(false)} />
           </SheetContent>
         </Sheet>
-        <h1 className="text-base font-bold text-[#1F5C8B]">Biblioteca</h1>
+        <img
+          src={logoImg}
+          alt="Biblioteca - Centro Espírita"
+          className="h-8 w-auto object-contain"
+        />
         <DateTimeIndicator />
       </div>
 
