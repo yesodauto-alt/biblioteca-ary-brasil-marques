@@ -107,56 +107,52 @@ export const getEmprestimo = async (id: string): Promise<EmprestimoWithLeitor> =
     })
   } catch {
     // Fallback: try fetching without expand
-    try {
-      const emprestimo = await pb.collection('emprestimos').getOne<EmprestimoWithLeitor>(id)
+    const emprestimo = await pb.collection('emprestimos').getOne<EmprestimoWithLeitor>(id)
 
-      const expand: EmprestimoWithLeitor['expand'] = { ...emprestimo.expand }
+    const expand: EmprestimoWithLeitor['expand'] = { ...emprestimo.expand }
 
-      if (emprestimo.leitor) {
-        try {
-          const leitor = await pb.collection('leitores').getOne(emprestimo.leitor)
-          expand.leitor = {
-            id: leitor.id,
-            nome_completo: leitor.nome_completo,
-            numero_cadastro: leitor.numero_cadastro,
-          }
-        } catch {
-          /* leitor record deleted — leave expand.leitor undefined */
+    if (emprestimo.leitor) {
+      try {
+        const leitor = await pb.collection('leitores').getOne(emprestimo.leitor)
+        expand.leitor = {
+          id: leitor.id,
+          nome_completo: leitor.nome_completo,
+          numero_cadastro: leitor.numero_cadastro,
         }
+      } catch {
+        /* leitor record deleted — leave expand.leitor undefined */
       }
-
-      if (emprestimo.livro) {
-        try {
-          const livro = await pb.collection('livros').getOne(emprestimo.livro)
-          expand.livro = {
-            id: livro.id,
-            titulo: livro.titulo,
-            autor: livro.autor,
-            numero_cadastro: livro.numero_cadastro,
-          }
-        } catch {
-          /* livro record deleted — leave expand.livro undefined */
-        }
-      }
-
-      if (emprestimo.responsavel_voluntario) {
-        try {
-          const vol = await getVoluntario(emprestimo.responsavel_voluntario)
-          expand.responsavel_voluntario = {
-            id: vol.id,
-            nome: vol.nome,
-            matricula: vol.matricula,
-          }
-        } catch {
-          /* volunteer record deleted — leave expand.responsavel_voluntario undefined */
-        }
-      }
-
-      emprestimo.expand = expand
-      return emprestimo
-    } catch (finalErr) {
-      throw finalErr
     }
+
+    if (emprestimo.livro) {
+      try {
+        const livro = await pb.collection('livros').getOne(emprestimo.livro)
+        expand.livro = {
+          id: livro.id,
+          titulo: livro.titulo,
+          autor: livro.autor,
+          numero_cadastro: livro.numero_cadastro,
+        }
+      } catch {
+        /* livro record deleted — leave expand.livro undefined */
+      }
+    }
+
+    if (emprestimo.responsavel_voluntario) {
+      try {
+        const vol = await getVoluntario(emprestimo.responsavel_voluntario)
+        expand.responsavel_voluntario = {
+          id: vol.id,
+          nome: vol.nome,
+          matricula: vol.matricula,
+        }
+      } catch {
+        /* volunteer record deleted — leave expand.responsavel_voluntario undefined */
+      }
+    }
+
+    emprestimo.expand = expand
+    return emprestimo
   }
 }
 
