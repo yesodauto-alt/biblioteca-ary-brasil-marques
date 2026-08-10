@@ -12,6 +12,10 @@ onRecordUpdateRequest(
         e.record.getString('quantidade_renovacoes')
     }
     var userId = ''
+    var volId = ''
+    if (colName === 'emprestimos') {
+      volId = e.record.getString('responsavel')
+    }
     if (e.auth && e.auth.collectionName === 'users') {
       userId = e.auth.id
     }
@@ -27,9 +31,8 @@ onRecordUpdateRequest(
         rec.set('acao', acao)
         rec.set('entidade', entidade)
         rec.set('registro_id', registroId)
-        if (userId) {
-          rec.set('usuario', userId)
-        }
+        if (userId) rec.set('usuario', userId)
+        if (volId) rec.set('voluntario', volId)
         rec.set('detalhes', detalhes)
         $app.save(rec)
       }

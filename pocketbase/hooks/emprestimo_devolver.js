@@ -18,11 +18,7 @@ routerAdd(
           day: '2-digit',
         }).format(new Date())
       } catch (_) {
-        var offset = -3
-        if (tz === 'America/Manaus' || tz === 'America/Cuiaba') offset = -4
-        if (tz === 'America/Rio_Branco') offset = -5
-        if (tz === 'America/Noronha') offset = -2
-        return new Date(Date.now() + offset * 3600000).toISOString().split('T')[0]
+        return new Date(Date.now() - 3 * 3600000).toISOString().split('T')[0]
       }
     }
 
@@ -53,7 +49,10 @@ routerAdd(
       auditRec.set('acao', 'devolucao')
       auditRec.set('entidade', 'emprestimo')
       auditRec.set('registro_id', emp.id)
-      auditRec.set('usuario', voluntarioId)
+      auditRec.set('voluntario', voluntarioId)
+      if (e.auth && e.auth.collectionName === 'users') {
+        auditRec.set('usuario', e.auth.id)
+      }
       auditRec.set('detalhes', 'Devolução registrada')
       $app.save(auditRec)
 

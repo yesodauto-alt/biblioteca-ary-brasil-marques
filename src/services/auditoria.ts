@@ -32,23 +32,32 @@ function makeMovementFromEmprestimo(emp: Emprestimo): AuditMovement {
     id: emp.id,
     acao: 'emprestimo',
     created: emp.created,
-    volunteerName: emp.expand?.responsavel?.name || '—',
+    volunteerName: emp.expand?.responsavel?.nome || '—',
     volunteerMatricula: emp.expand?.responsavel?.matricula || '—',
     bookTitle: emp.expand?.livro?.titulo || '—',
     bookNumeroCadastro: emp.expand?.livro?.numero_cadastro || '—',
-    leitorNome: emp.expand?.leitor?.nome_completo || '—',
-    leitorNumeroCadastro: emp.expand?.leitor?.numero_cadastro || '—',
+    leitorNome: '—',
+    leitorNumeroCadastro: '—',
   }
 }
 
 function makeMovementFromAudit(audit: any, emp?: Emprestimo): AuditMovement {
+  const volName =
+    audit.expand?.voluntario?.nome ||
+    audit.expand?.usuario?.name ||
+    emp?.expand?.responsavel?.nome ||
+    '—'
+  const volMat =
+    audit.expand?.voluntario?.matricula ||
+    audit.expand?.usuario?.matricula ||
+    emp?.expand?.responsavel?.matricula ||
+    '—'
   return {
     id: audit.id,
     acao: audit.acao === 'criacao' ? 'emprestimo' : audit.acao,
     created: audit.created,
-    volunteerName: audit.expand?.usuario?.name || emp?.expand?.responsavel?.name || '—',
-    volunteerMatricula:
-      audit.expand?.usuario?.matricula || emp?.expand?.responsavel?.matricula || '—',
+    volunteerName: volName,
+    volunteerMatricula: volMat,
     bookTitle: emp?.expand?.livro?.titulo || '—',
     bookNumeroCadastro: emp?.expand?.livro?.numero_cadastro || '—',
     leitorNome: emp?.expand?.leitor?.nome_completo || '—',
@@ -60,7 +69,6 @@ export async function getMovementsFromEmprestimos(
   emprestimos: Emprestimo[],
 ): Promise<AuditMovement[]> {
   if (emprestimos.length === 0) return []
-
   const empMap = new Map(emprestimos.map((e) => [e.id, e]))
   const ids = Array.from(empMap.keys())
   const filterParts = ids.map((id) => `registro_id = "${id}"`)
@@ -73,20 +81,16 @@ export async function getMovementsFromEmprestimos(
       const records = await pb.collection('auditoria').getFullList({
         filter: chunk,
         sort: '-created',
-        expand: 'usuario',
+        expand: 'voluntario,usuario',
       })
       allAudits.push(...records)
     } catch {
-      // ignore
+      /* ignore */
     }
   }
 
-  if (allAudits.length === 0) {
-    return emprestimos.map(makeMovementFromEmprestimo)
-  }
-
+  if (allAudits.length === 0) return emprestimos.map(makeMovementFromEmprestimo)
   allAudits.sort((a, b) => b.created.localeCompare(a.created))
-
   return allAudits.map((audit) => {
     const emp = empMap.get(audit.registro_id)
     return makeMovementFromAudit(audit, emp)

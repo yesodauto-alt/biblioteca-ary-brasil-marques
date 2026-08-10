@@ -16,17 +16,16 @@ export interface Emprestimo {
   created: string
   updated: string
   expand?: {
-    livro?: {
-      id: string
-      titulo: string
-      autor: string
-      numero_cadastro: string
-    }
-    responsavel?: {
-      id: string
-      name: string
-      matricula: string
-    }
+    livro?: { id: string; titulo: string; autor: string; numero_cadastro: string }
+    responsavel?: { id: string; nome: string; matricula: string }
+  }
+}
+
+export interface EmprestimoWithLeitor extends Emprestimo {
+  expand?: {
+    livro?: { id: string; titulo: string; autor: string; numero_cadastro: string }
+    leitor?: { id: string; nome_completo: string; numero_cadastro: string }
+    responsavel?: { id: string; nome: string; matricula: string }
   }
 }
 
@@ -38,32 +37,13 @@ export const getEmprestimosByLeitor = async (leitorId: string): Promise<Empresti
   })
 }
 
-export interface EmprestimoWithLeitor extends Emprestimo {
-  expand?: {
-    livro?: {
-      id: string
-      titulo: string
-      autor: string
-      numero_cadastro: string
-    }
-    leitor?: {
-      id: string
-      nome_completo: string
-      numero_cadastro: string
-    }
-  }
-}
-
 export const getEmprestimosByLivro = async (livroId: string): Promise<EmprestimoWithLeitor[]> => {
   return await pb.collection('emprestimos').getFullList<EmprestimoWithLeitor>({
     filter: `livro = "${livroId}"`,
     sort: '-data_emprestimo',
-    expand: 'leitor,responsavel',
+    expand: 'leitor,livro,responsavel',
   })
 }
-
-export const LOAN_PERIOD_DAYS = 15
-export const DEFAULT_MAX_BOOKS = 3
 
 export interface CreateEmprestimoData {
   leitor: string
@@ -74,25 +54,20 @@ export interface CreateEmprestimoData {
 
 export const createEmprestimo = async (data: CreateEmprestimoData): Promise<Emprestimo> => {
   const tipo = data.tipo_emprestimo || 'comum'
-
-  let loanPeriod = LOAN_PERIOD_DAYS
+  let loanPeriod = 15
   let timezone = 'America/Sao_Paulo'
   try {
     const config = await getConfiguracoes()
     if (config?.prazo_devolucao_dias) loanPeriod = config.prazo_devolucao_dias
     if (config?.fuso_horario) timezone = config.fuso_horario
   } catch {
-    /* intentionally ignored */
+    /* ignored */
   }
-
-  if (tipo === 'estudo') {
-    loanPeriod = 90
-  }
+  if (tipo === 'estudo') loanPeriod = 90
 
   const today = new Date()
   const returnDate = new Date()
   returnDate.setDate(returnDate.getDate() + loanPeriod)
-
   const toDateStr = (d: Date) =>
     new Intl.DateTimeFormat('sv-SE', {
       timeZone: timezone,
@@ -117,7 +92,13 @@ export const getActiveEmprestimos = async (): Promise<EmprestimoWithLeitor[]> =>
   return await pb.collection('emprestimos').getFullList<EmprestimoWithLeitor>({
     filter: `status = "ativo" || status = "atrasado"`,
     sort: 'data_prevista_devolucao',
-    expand: 'leitor,livro',
+    expand: 'leitor,livro,responsavel',
+  })
+}
+
+export const getEmprestimo = async (id: string): Promise<EmprestimoWithLeitor> => {
+  return await pb.collection('emprestimos').getOne<EmprestimoWithLeitor>(id, {
+    expand: 'leitor,livro,responsavel',
   })
 }
 
@@ -129,7 +110,7 @@ export const getActiveEmprestimoByLivroCadastro = async (
     .collection('emprestimos')
     .getFirstListItem<EmprestimoWithLeitor>(
       `livro = "${livro.id}" && (status = "ativo" || status = "atrasado")`,
-      { expand: 'leitor,livro', sort: '-data_emprestimo' },
+      { expand: 'leitor,livro,responsavel', sort: '-data_emprestimo' },
     )
 }
 
@@ -138,7 +119,7 @@ export const getDevolucoesHoje = async (): Promise<EmprestimoWithLeitor[]> => {
   return await pb.collection('emprestimos').getFullList<EmprestimoWithLeitor>({
     filter: `status = "devolvido" && data_devolucao_real = "${today}"`,
     sort: '-updated',
-    expand: 'leitor,livro',
+    expand: 'leitor,livro,responsavel',
   })
 }
 
@@ -152,15 +133,38 @@ export const devolverEmprestimo = async (id: string, voluntarioId: string): Prom
 
 export const renovarEmprestimo = async (
   id: string,
-  novaDataDevolucao: string,
+  novaData: string,
   voluntarioId: string,
 ): Promise<Emprestimo> => {
   return await pb.send(`/backend/v1/emprestimos/${id}/renovar`, {
     method: 'POST',
-    body: JSON.stringify({
-      voluntario_id: voluntarioId,
-      nova_data_devolucao: novaDataDevolucao,
-    }),
+    body: JSON.stringify({ voluntario_id: voluntarioId, nova_data_devolucao: novaData }),
+    headers: { 'Content-Type': 'application/json' },
+  })
+}
+
+export const excluirEmprestimo = async (id: string, voluntarioId?: string): Promise<void> => {
+  await pb.send(`/backend/v1/emprestimos/${id}/excluir`, {
+    method: 'POST',
+    body: JSON.stringify(voluntarioId ? { voluntario_id: voluntarioId } : {}),
+    headers: { 'Content-Type': 'application/json' },
+  })
+}
+
+export interface EditarEmprestimoData {
+  leitor: string
+  livro: string
+  tipo_emprestimo: 'comum' | 'estudo'
+  responsavel: string
+}
+
+export const editarEmprestimo = async (
+  id: string,
+  data: EditarEmprestimoData,
+): Promise<Emprestimo> => {
+  return await pb.send(`/backend/v1/emprestimos/${id}/editar`, {
+    method: 'POST',
+    body: JSON.stringify(data),
     headers: { 'Content-Type': 'application/json' },
   })
 }
@@ -187,11 +191,13 @@ export const hasActiveLoansByLivro = async (livroId: string): Promise<boolean> =
   }
 }
 
-export const hasActiveLoansByResponsavel = async (userId: string): Promise<boolean> => {
+export const hasActiveLoansByResponsavel = async (voluntarioId: string): Promise<boolean> => {
   try {
     await pb
       .collection('emprestimos')
-      .getFirstListItem(`responsavel = "${userId}" && (status = "ativo" || status = "atrasado")`)
+      .getFirstListItem(
+        `responsavel = "${voluntarioId}" && (status = "ativo" || status = "atrasado")`,
+      )
     return true
   } catch {
     return false

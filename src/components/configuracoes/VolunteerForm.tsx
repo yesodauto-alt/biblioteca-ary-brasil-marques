@@ -18,86 +18,58 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import {
-  createUser,
-  updateUser,
-  type User,
-  type UserRole,
-  type CreateUserData,
-  type UpdateUserData,
-} from '@/services/users'
-import { extractFieldErrors, type FieldErrors } from '@/lib/pocketbase/errors'
+  createVoluntario,
+  updateVoluntario,
+  type Voluntario,
+  type VoluntarioStatus,
+} from '@/services/voluntarios'
 import { toast } from 'sonner'
 
 interface VolunteerFormProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  editingUser: User | null
-  onSaved: (created?: User) => void
+  editingVoluntario: Voluntario | null
+  onSaved: (created?: Voluntario) => void
 }
 
-export function VolunteerForm({ open, onOpenChange, editingUser, onSaved }: VolunteerFormProps) {
+export function VolunteerForm({
+  open,
+  onOpenChange,
+  editingVoluntario,
+  onSaved,
+}: VolunteerFormProps) {
   const [loading, setLoading] = useState(false)
-  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({})
-  const [form, setForm] = useState<CreateUserData>({
-    name: '',
-    email: '',
-    password: '',
-    role: 'voluntário',
-  })
+  const [form, setForm] = useState({ nome: '', status: 'ativo' as VoluntarioStatus })
 
   useEffect(() => {
     if (open) {
-      setFieldErrors({})
-      if (editingUser) {
-        setForm({
-          name: editingUser.name,
-          email: editingUser.email,
-          password: '',
-          role: editingUser.role,
-        })
+      if (editingVoluntario) {
+        setForm({ nome: editingVoluntario.nome, status: editingVoluntario.status })
       } else {
-        setForm({ name: '', email: '', password: '', role: 'voluntário' })
+        setForm({ nome: '', status: 'ativo' })
       }
     }
-  }, [open, editingUser])
+  }, [open, editingVoluntario])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-    setFieldErrors({})
     try {
-      if (editingUser) {
-        const data: UpdateUserData = {
-          name: form.name.trim(),
-          email: form.email.trim(),
-          role: form.role,
-        }
-        if (form.password) {
-          data.password = form.password
-        }
-        await updateUser(editingUser.id, data)
+      if (editingVoluntario) {
+        await updateVoluntario(editingVoluntario.id, {
+          nome: form.nome.trim(),
+          status: form.status,
+        })
         onSaved()
+        onOpenChange(false)
       } else {
-        const created = await createUser({
-          name: form.name.trim(),
-          email: form.email.trim(),
-          password: form.password,
-          role: form.role,
-        })
+        const created = await createVoluntario({ nome: form.nome.trim(), status: form.status })
         onSaved(created)
-        toast.success('Voluntário cadastrado com sucesso.', {
-          description: created?.matricula ? `Matrícula: ${created.matricula}` : undefined,
-        })
+        onOpenChange(false)
       }
-      onOpenChange(false)
     } catch (error) {
       console.error('VolunteerForm submit error:', error)
-      setFieldErrors({})
-      toast.error(
-        editingUser
-          ? 'Não foi possível atualizar o voluntário. Verifique os dados e tente novamente.'
-          : 'Não foi possível cadastrar o voluntário. Verifique os dados e tente novamente.',
-      )
+      toast.error('Não foi possível salvar o voluntário. Verifique os dados e tente novamente.')
     } finally {
       setLoading(false)
     }
@@ -108,74 +80,50 @@ export function VolunteerForm({ open, onOpenChange, editingUser, onSaved }: Volu
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">
-            {editingUser ? 'Editar Voluntário' : 'Novo Voluntário'}
+            {editingVoluntario ? 'Editar Voluntário' : 'Novo Voluntário'}
           </DialogTitle>
           <DialogDescription className="text-base">
-            {editingUser
+            {editingVoluntario
               ? 'Altere os dados do voluntário.'
               : 'Cadastre um novo voluntário no sistema.'}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          {editingUser?.matricula && (
+          {editingVoluntario?.matricula && (
             <div className="bg-[#1F5C8B]/5 border border-[#1F5C8B]/15 rounded-lg p-3 flex items-center gap-2">
               <BadgeCheck className="w-5 h-5 text-[#1F5C8B] shrink-0" />
               <div>
                 <p className="text-sm text-gray-500 font-medium">Matrícula</p>
-                <p className="text-base font-bold text-[#1F5C8B]">{editingUser.matricula}</p>
+                <p className="text-base font-bold text-[#1F5C8B]">{editingVoluntario.matricula}</p>
               </div>
             </div>
           )}
           <div className="space-y-2">
             <Label className="text-base font-semibold">Nome *</Label>
             <Input
-              value={form.name}
-              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              value={form.nome}
+              onChange={(e) => setForm({ ...form, nome: e.target.value })}
               className="h-12 text-base"
               required
             />
-            {fieldErrors.name && <p className="text-sm text-red-500">{fieldErrors.name}</p>}
           </div>
-          <div className="space-y-2">
-            <Label className="text-base font-semibold">E-mail *</Label>
-            <Input
-              type="email"
-              value={form.email}
-              onChange={(e) => setForm({ ...form, email: e.target.value })}
-              className="h-12 text-base"
-              required
-            />
-            {fieldErrors.email && <p className="text-sm text-red-500">{fieldErrors.email}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label className="text-base font-semibold">
-              Senha {editingUser ? '(deixe em branco para manter)' : '*'}
-            </Label>
-            <Input
-              type="password"
-              value={form.password}
-              onChange={(e) => setForm({ ...form, password: e.target.value })}
-              className="h-12 text-base"
-              placeholder={editingUser ? '••••••••' : 'Mínimo 8 caracteres'}
-              required={!editingUser}
-            />
-            {fieldErrors.password && <p className="text-sm text-red-500">{fieldErrors.password}</p>}
-          </div>
-          <div className="space-y-2">
-            <Label className="text-base font-semibold">Perfil *</Label>
-            <Select
-              value={form.role}
-              onValueChange={(v) => setForm({ ...form, role: v as UserRole })}
-            >
-              <SelectTrigger className="h-12 text-base">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="voluntário">Voluntário</SelectItem>
-                <SelectItem value="administrador">Administrador</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          {editingVoluntario && (
+            <div className="space-y-2">
+              <Label className="text-base font-semibold">Status *</Label>
+              <Select
+                value={form.status}
+                onValueChange={(v) => setForm({ ...form, status: v as VoluntarioStatus })}
+              >
+                <SelectTrigger className="h-12 text-base">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ativo">Ativo</SelectItem>
+                  <SelectItem value="inativo">Inativo</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          )}
           <div className="flex gap-3 pt-2">
             <Button
               type="button"
@@ -195,7 +143,7 @@ export function VolunteerForm({ open, onOpenChange, editingUser, onSaved }: Volu
               ) : (
                 <UserPlus className="w-5 h-5 mr-2" />
               )}
-              {editingUser ? 'Salvar' : 'Cadastrar'}
+              {editingVoluntario ? 'Salvar' : 'Cadastrar'}
             </Button>
           </div>
         </form>

@@ -3,15 +3,16 @@ import { Search, Check } from 'lucide-react'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { cn } from '@/lib/utils'
-import { getActiveVolunteers, type User } from '@/services/users'
+import { getActiveVoluntarios, type Voluntario } from '@/services/voluntarios'
 
 interface VolunteerSelectProps {
   value: string
   onChange: (value: string) => void
+  onSelect?: (voluntario: Voluntario | null) => void
 }
 
-export function VolunteerSelect({ value, onChange }: VolunteerSelectProps) {
-  const [volunteers, setVolunteers] = useState<User[]>([])
+export function VolunteerSelect({ value, onChange, onSelect }: VolunteerSelectProps) {
+  const [volunteers, setVolunteers] = useState<Voluntario[]>([])
   const [loaded, setLoaded] = useState(false)
   const [search, setSearch] = useState('')
 
@@ -21,7 +22,7 @@ export function VolunteerSelect({ value, onChange }: VolunteerSelectProps) {
       return
     }
     if (value && !loaded) {
-      getActiveVolunteers()
+      getActiveVoluntarios()
         .then((vols) => {
           setVolunteers(vols)
           setLoaded(true)
@@ -38,7 +39,7 @@ export function VolunteerSelect({ value, onChange }: VolunteerSelectProps) {
   const handleSearchChange = (v: string) => {
     setSearch(v)
     if (v.trim() && !loaded) {
-      getActiveVolunteers()
+      getActiveVoluntarios()
         .then((vols) => {
           setVolunteers(vols)
           setLoaded(true)
@@ -51,17 +52,19 @@ export function VolunteerSelect({ value, onChange }: VolunteerSelectProps) {
     const q = search.trim().toLowerCase()
     if (!q) return []
     return volunteers.filter(
-      (v) => v.name.toLowerCase().includes(q) || (v.matricula || '').toLowerCase().includes(q),
+      (v) => v.nome.toLowerCase().includes(q) || (v.matricula || '').toLowerCase().includes(q),
     )
   }, [volunteers, search])
 
-  const handleSelect = (v: User) => {
+  const handleSelect = (v: Voluntario) => {
     onChange(v.id)
+    onSelect?.(v)
     setSearch('')
   }
 
   const handleClear = () => {
     onChange('')
+    onSelect?.(null)
     setSearch('')
   }
 
@@ -73,7 +76,7 @@ export function VolunteerSelect({ value, onChange }: VolunteerSelectProps) {
           <div className="flex items-center gap-2">
             <Check className="w-5 h-5 text-[#1F5C8B] shrink-0" />
             <span className="text-base font-semibold text-[#1F5C8B]">
-              {selectedVolunteer.matricula || '—'} — {selectedVolunteer.name}
+              {selectedVolunteer.matricula || '—'} — {selectedVolunteer.nome}
             </span>
           </div>
           <button
@@ -110,7 +113,7 @@ export function VolunteerSelect({ value, onChange }: VolunteerSelectProps) {
                     'border-gray-200 hover:border-[#1F5C8B]/40 hover:bg-gray-50',
                   )}
                 >
-                  {v.matricula || '—'} — {v.name}
+                  {v.matricula || '—'} — {v.nome}
                 </button>
               ))}
             </div>

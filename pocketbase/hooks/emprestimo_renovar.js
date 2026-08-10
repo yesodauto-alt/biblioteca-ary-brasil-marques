@@ -26,7 +26,10 @@ routerAdd(
       auditRec.set('acao', 'renovacao')
       auditRec.set('entidade', 'emprestimo')
       auditRec.set('registro_id', emp.id)
-      auditRec.set('usuario', voluntarioId)
+      auditRec.set('voluntario', voluntarioId)
+      if (e.auth && e.auth.collectionName === 'users') {
+        auditRec.set('usuario', e.auth.id)
+      }
       auditRec.set('detalhes', 'Renovação registrada')
       $app.save(auditRec)
 

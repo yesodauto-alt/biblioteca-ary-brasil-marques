@@ -14,8 +14,12 @@ onRecordCreateRequest(
       }
 
       var userId = ''
+      var volId = ''
       if (colName === 'emprestimos') {
-        userId = e.record.getString('responsavel')
+        volId = e.record.getString('responsavel')
+        if (e.auth && e.auth.collectionName === 'users') {
+          userId = e.auth.id
+        }
       } else if (e.auth && e.auth.collectionName === 'users') {
         userId = e.auth.id
       }
@@ -25,9 +29,8 @@ onRecordCreateRequest(
       auditRecord.set('acao', acao)
       auditRecord.set('entidade', entidade)
       auditRecord.set('registro_id', e.record.id)
-      if (userId) {
-        auditRecord.set('usuario', userId)
-      }
+      if (userId) auditRecord.set('usuario', userId)
+      if (volId) auditRecord.set('voluntario', volId)
       auditRecord.set('detalhes', 'Registro criado: ' + e.record.id)
       $app.save(auditRecord)
     } catch (err) {
