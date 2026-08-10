@@ -84,17 +84,16 @@ migrate(
     }
 
     var empCol = app.findCollectionByNameOrId('emprestimos')
-    var oldRespField = empCol.fields.getByName('responsavel')
-    if (oldRespField) empCol.fields.removeById(oldRespField.id)
-    empCol.fields.add(
-      new RelationField({
-        name: 'responsavel',
-        required: true,
-        collectionId: app.findCollectionByNameOrId('voluntarios').id,
-        maxSelect: 1,
-        cascadeDelete: false,
-      }),
-    )
+    if (!empCol.fields.getByName('responsavel_voluntario')) {
+      empCol.fields.add(
+        new RelationField({
+          name: 'responsavel_voluntario',
+          collectionId: app.findCollectionByNameOrId('voluntarios').id,
+          maxSelect: 1,
+          cascadeDelete: false,
+        }),
+      )
+    }
     app.save(empCol)
 
     for (var e2 = 0; e2 < emprestimos.length; e2++) {
@@ -103,7 +102,7 @@ migrate(
       if (oldUserId && userIdToVolId[oldUserId]) {
         app
           .db()
-          .newQuery('UPDATE emprestimos SET responsavel = {:vid} WHERE id = {:eid}')
+          .newQuery('UPDATE emprestimos SET responsavel_voluntario = {:vid} WHERE id = {:eid}')
           .bind({ vid: userIdToVolId[oldUserId], eid: empId })
           .execute()
       }
@@ -112,17 +111,8 @@ migrate(
   (app) => {
     try {
       var empCol = app.findCollectionByNameOrId('emprestimos')
-      var rf = empCol.fields.getByName('responsavel')
-      if (rf) empCol.fields.removeById(rf.id)
-      empCol.fields.add(
-        new RelationField({
-          name: 'responsavel',
-          required: true,
-          collectionId: '_pb_users_auth_',
-          maxSelect: 1,
-          cascadeDelete: false,
-        }),
-      )
+      var rvf = empCol.fields.getByName('responsavel_voluntario')
+      if (rvf) empCol.fields.removeById(rvf.id)
       app.save(empCol)
     } catch (_) {}
     try {

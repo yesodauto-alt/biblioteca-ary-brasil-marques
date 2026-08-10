@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-10T04:19:57.797Z",
+  "generatedAt": "2026-08-10T04:28:45.807Z",
   "collections": [
     {
       "name": "users",
@@ -331,6 +331,13 @@
           "type": "number",
           "required": false,
           "system": false
+        },
+        {
+          "name": "responsavel_voluntario",
+          "type": "relation",
+          "required": false,
+          "system": false,
+          "collectionRef": "voluntarios"
         }
       ],
       "indexes": [
@@ -401,6 +408,13 @@
           "required": false,
           "system": false,
           "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "voluntario",
+          "type": "relation",
+          "required": false,
+          "system": false,
+          "collectionRef": "voluntarios"
         }
       ],
       "indexes": [
@@ -575,6 +589,57 @@
         "CREATE INDEX idx_cursos_livros_curso ON cursos_livros (curso)",
         "CREATE INDEX idx_cursos_livros_livro ON cursos_livros (livro)",
         "CREATE UNIQUE INDEX idx_cursos_livros_unique ON cursos_livros (curso, livro)"
+      ]
+    },
+    {
+      "name": "voluntarios",
+      "type": "base",
+      "apiRules": {
+        "list": "@request.auth.id != ''",
+        "view": "@request.auth.id != ''",
+        "create": "@request.auth.id != ''",
+        "update": "@request.auth.id != ''",
+        "delete": "@request.auth.id != ''"
+      },
+      "fields": [
+        {
+          "name": "matricula",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "nome",
+          "type": "text",
+          "required": true,
+          "system": false
+        },
+        {
+          "name": "status",
+          "type": "select",
+          "required": true,
+          "system": false,
+          "selectValues": ["ativo", "inativo"]
+        },
+        {
+          "name": "created",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate"]
+        },
+        {
+          "name": "updated",
+          "type": "autodate",
+          "required": false,
+          "system": false,
+          "autodateTriggers": ["onCreate", "onUpdate"]
+        }
+      ],
+      "indexes": [
+        "CREATE UNIQUE INDEX idx_voluntarios_matricula ON voluntarios (matricula)",
+        "CREATE INDEX idx_voluntarios_status ON voluntarios (status)",
+        "CREATE INDEX idx_voluntarios_nome ON voluntarios (nome)"
       ]
     }
   ]
