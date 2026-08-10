@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
+import { VolunteerSelect } from '@/components/volunteers/VolunteerSelect'
 import {
   Dialog,
   DialogContent,
@@ -28,7 +29,6 @@ import {
   type EmprestimoWithLeitor,
 } from '@/services/emprestimos'
 import { getConfiguracoes, type Configuracoes } from '@/services/configuracoes'
-import { updateLivroStatus } from '@/services/livros'
 import { toast } from 'sonner'
 
 function formatDate(dateStr: string): string {
@@ -51,6 +51,7 @@ export default function Devolucao() {
   const [success, setSuccess] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [config, setConfig] = useState<Configuracoes | null>(null)
+  const [selectedVoluntario, setSelectedVoluntario] = useState('')
 
   const [renewOpen, setRenewOpen] = useState(false)
   const [newReturnDate, setNewReturnDate] = useState('')
@@ -105,6 +106,10 @@ export default function Devolucao() {
 
   const handleOpenRenew = () => {
     if (!emprestimo || !config || !canRenew) return
+    if (!selectedVoluntario) {
+      toast.error('Selecione o voluntário responsável por esta operação.')
+      return
+    }
     const due = new Date(emprestimo.data_prevista_devolucao + 'T00:00:00')
     due.setDate(due.getDate() + config.prazo_devolucao_dias)
     setNewReturnDate(due.toISOString().split('T')[0])
@@ -112,10 +117,10 @@ export default function Devolucao() {
   }
 
   const handleConfirmRenew = async () => {
-    if (!emprestimo || !newReturnDate) return
+    if (!emprestimo || !newReturnDate || !selectedVoluntario) return
     setRenewing(true)
     try {
-      const updated = await renovarEmprestimo(emprestimo.id, newReturnDate)
+      const updated = await renovarEmprestimo(emprestimo.id, newReturnDate, selectedVoluntario)
       setEmprestimo({
         ...emprestimo,
         data_prevista_devolucao: updated.data_prevista_devolucao,
@@ -132,14 +137,18 @@ export default function Devolucao() {
 
   const handleConfirmDevolution = async () => {
     if (!emprestimo || submitting) return
+    if (!selectedVoluntario) {
+      toast.error('Selecione o voluntário responsável por esta operação.')
+      return
+    }
     setSubmitting(true)
     try {
-      await devolverEmprestimo(emprestimo.id)
-      await updateLivroStatus(emprestimo.livro, 'disponível')
+      await devolverEmprestimo(emprestimo.id, selectedVoluntario)
       setSuccess('Devolução realizada com sucesso.')
       setBookSearch('')
       setEmprestimo(null)
       setError(null)
+      setSelectedVoluntario('')
       setTimeout(() => inputRef.current?.focus(), 100)
     } catch {
       toast.error('Erro ao registrar devolução. Tente novamente.')
@@ -267,6 +276,8 @@ export default function Devolucao() {
                 </p>
               )}
             </div>
+
+            <VolunteerSelect value={selectedVoluntario} onChange={setSelectedVoluntario} />
 
             {renewLimitReached && (
               <div className="flex items-center gap-2 text-orange-600 bg-orange-50 border border-orange-200 rounded-lg p-3">

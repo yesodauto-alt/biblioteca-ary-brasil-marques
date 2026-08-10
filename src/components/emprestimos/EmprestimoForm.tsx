@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { Label } from '@/components/ui/label'
 import { LeitorSearch } from '@/components/usuarios/LeitorSearch'
+import { VolunteerSelect } from '@/components/volunteers/VolunteerSelect'
 import { getLivroByCadastro, updateLivroStatus, type Livro } from '@/services/livros'
 import { createEmprestimo, getEmprestimosByLeitor, type Emprestimo } from '@/services/emprestimos'
 import { getConfiguracoes, type Configuracoes } from '@/services/configuracoes'
@@ -37,6 +38,7 @@ export function EmprestimoForm({
   const [foundLivro, setFoundLivro] = useState<Livro | null>(null)
   const [bookError, setBookError] = useState<string | null>(null)
   const [tipo, setTipo] = useState<'comum' | 'estudo'>('comum')
+  const [selectedVoluntario, setSelectedVoluntario] = useState('')
   const [config, setConfig] = useState<Configuracoes | null>(null)
   const [activeLoans, setActiveLoans] = useState<Emprestimo[]>([])
   const [submitting, setSubmitting] = useState(false)
@@ -63,6 +65,7 @@ export function EmprestimoForm({
       setFoundLivro(null)
       setBookError(null)
       setTipo('comum')
+      setSelectedVoluntario('')
     }
   }, [open, preselectedLeitor])
 
@@ -107,12 +110,16 @@ export function EmprestimoForm({
 
   const handleSubmit = async () => {
     if (!leitor || !foundLivro || !user || wouldExceed) return
+    if (!selectedVoluntario) {
+      toast.error('Selecione o voluntário responsável por esta operação.')
+      return
+    }
     setSubmitting(true)
     try {
       await createEmprestimo({
         leitor: leitor.id,
         livro: foundLivro.id,
-        responsavel: user.id,
+        responsavel: selectedVoluntario,
         tipo_emprestimo: tipo,
       })
       await updateLivroStatus(foundLivro.id, 'emprestado')
@@ -234,6 +241,8 @@ export function EmprestimoForm({
                 </p>
               )}
             </div>
+
+            <VolunteerSelect value={selectedVoluntario} onChange={setSelectedVoluntario} />
           </div>
         ) : (
           <div className="space-y-4">

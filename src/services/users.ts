@@ -60,3 +60,7 @@ export const updateUser = async (id: string, data: UpdateUserData): Promise<User
 export const deleteUser = async (id: string): Promise<void> => {
   await pb.collection('users').delete(id)
 }
+
+export const getActiveVolunteers = async (): Promise<User[]> => {
+  return await pb.send('/backend/v1/volunteers/active', { method: 'GET' })
+}

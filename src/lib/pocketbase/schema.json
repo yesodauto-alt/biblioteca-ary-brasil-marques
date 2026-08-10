@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-10T01:27:00.349Z",
+  "generatedAt": "2026-08-10T01:43:00.463Z",
   "collections": [
     {
       "name": "users",
@@ -228,6 +228,12 @@
         },
         {
           "name": "cutter",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "cdd",
           "type": "text",
           "required": false,
           "system": false
@@ -465,6 +471,12 @@
         },
         {
           "name": "informacoes_institucionais",
+          "type": "text",
+          "required": false,
+          "system": false
+        },
+        {
+          "name": "fuso_horario",
           "type": "text",
           "required": false,
           "system": false

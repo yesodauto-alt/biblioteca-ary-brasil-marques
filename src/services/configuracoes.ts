@@ -9,6 +9,7 @@ export interface Configuracoes {
   telefone: string
   email: string
   informacoes_institucionais: string
+  fuso_horario: string
   created: string
   updated: string
 }

@@ -14,7 +14,9 @@ onRecordCreateRequest(
       }
 
       var userId = ''
-      if (e.auth && e.auth.collectionName === 'users') {
+      if (colName === 'emprestimos') {
+        userId = e.record.getString('responsavel')
+      } else if (e.auth && e.auth.collectionName === 'users') {
         userId = e.auth.id
       }
 

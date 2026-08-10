@@ -15,6 +15,7 @@ routerAdd(
         telefone: rec.getString('telefone'),
         email: rec.getString('email'),
         informacoes_institucionais: rec.getString('informacoes_institucionais'),
+        fuso_horario: rec.getString('fuso_horario'),
         created: rec.getString('created'),
         updated: rec.getString('updated'),
       })

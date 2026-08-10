@@ -33,3 +33,20 @@ export function formatDate(dateStr: string): string {
   if (!dateStr) return '—'
   return new Date(dateStr + 'T00:00:00').toLocaleDateString('pt-BR')
 }
+
+export function formatDateTime(dateStr: string, timezone: string = 'America/Sao_Paulo'): string {
+  if (!dateStr) return '—'
+  const date = new Date(dateStr)
+  const datePart = new Intl.DateTimeFormat('pt-BR', {
+    timeZone: timezone,
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(date)
+  const timePart = new Intl.DateTimeFormat('pt-BR', {
+    timeZone: timezone,
+    hour: '2-digit',
+    minute: '2-digit',
+  }).format(date)
+  return `${datePart} às ${timePart}`
+}

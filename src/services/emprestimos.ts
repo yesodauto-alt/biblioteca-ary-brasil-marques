@@ -71,9 +71,11 @@ export const createEmprestimo = async (data: CreateEmprestimoData): Promise<Empr
   const tipo = data.tipo_emprestimo || 'comum'
 
   let loanPeriod = LOAN_PERIOD_DAYS
+  let timezone = 'America/Sao_Paulo'
   try {
     const config = await getConfiguracoes()
     if (config?.prazo_devolucao_dias) loanPeriod = config.prazo_devolucao_dias
+    if (config?.fuso_horario) timezone = config.fuso_horario
   } catch {
     /* intentionally ignored */
   }
@@ -86,7 +88,13 @@ export const createEmprestimo = async (data: CreateEmprestimoData): Promise<Empr
   const returnDate = new Date()
   returnDate.setDate(returnDate.getDate() + loanPeriod)
 
-  const toDateStr = (d: Date) => d.toISOString().split('T')[0]
+  const toDateStr = (d: Date) =>
+    new Intl.DateTimeFormat('sv-SE', {
+      timeZone: timezone,
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    }).format(d)
 
   return await pb.collection('emprestimos').create<Emprestimo>({
     leitor: data.leitor,
@@ -129,22 +137,26 @@ export const getDevolucoesHoje = async (): Promise<EmprestimoWithLeitor[]> => {
   })
 }
 
-export const devolverEmprestimo = async (id: string): Promise<Emprestimo> => {
-  const today = new Date().toISOString().split('T')[0]
-  return await pb.collection('emprestimos').update<Emprestimo>(id, {
-    data_devolucao_real: today,
-    status: 'devolvido',
+export const devolverEmprestimo = async (id: string, voluntarioId: string): Promise<Emprestimo> => {
+  return await pb.send(`/backend/v1/emprestimos/${id}/devolver`, {
+    method: 'POST',
+    body: JSON.stringify({ voluntario_id: voluntarioId }),
+    headers: { 'Content-Type': 'application/json' },
   })
 }
 
 export const renovarEmprestimo = async (
   id: string,
   novaDataDevolucao: string,
+  voluntarioId: string,
 ): Promise<Emprestimo> => {
-  const existing = await pb.collection('emprestimos').getOne<Emprestimo>(id)
-  return await pb.collection('emprestimos').update<Emprestimo>(id, {
-    data_prevista_devolucao: novaDataDevolucao,
-    quantidade_renovacoes: existing.quantidade_renovacoes + 1,
+  return await pb.send(`/backend/v1/emprestimos/${id}/renovar`, {
+    method: 'POST',
+    body: JSON.stringify({
+      voluntario_id: voluntarioId,
+      nova_data_devolucao: novaDataDevolucao,
+    }),
+    headers: { 'Content-Type': 'application/json' },
   })
 }
 
