@@ -18,6 +18,7 @@ export interface Emprestimo {
   expand?: {
     livro?: { id: string; titulo: string; autor: string; numero_cadastro: string }
     responsavel?: { id: string; nome: string; matricula: string }
+    responsavel_voluntario?: { id: string; nome: string; matricula: string }
   }
 }
 
@@ -26,6 +27,7 @@ export interface EmprestimoWithLeitor extends Emprestimo {
     livro?: { id: string; titulo: string; autor: string; numero_cadastro: string }
     leitor?: { id: string; nome_completo: string; numero_cadastro: string }
     responsavel?: { id: string; nome: string; matricula: string }
+    responsavel_voluntario?: { id: string; nome: string; matricula: string }
   }
 }
 
@@ -98,7 +100,7 @@ export const getActiveEmprestimos = async (): Promise<EmprestimoWithLeitor[]> =>
 
 export const getEmprestimo = async (id: string): Promise<EmprestimoWithLeitor> => {
   return await pb.collection('emprestimos').getOne<EmprestimoWithLeitor>(id, {
-    expand: 'leitor,livro,responsavel',
+    expand: 'leitor,livro,responsavel_voluntario',
   })
 }
 

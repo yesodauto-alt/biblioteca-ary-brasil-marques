@@ -73,8 +73,10 @@ export function EmprestimoDetalhes({
   }
 
   const situacao = emprestimo ? getSituacao(emprestimo.data_prevista_devolucao) : 'sem-data'
-  const respAny = emprestimo?.expand?.responsavel as any
-  const responsavelName = respAny?.name || respAny?.nome || '—'
+  const voluntarioResp = emprestimo?.expand?.responsavel_voluntario
+  const responsavelDisplay = voluntarioResp
+    ? `${voluntarioResp.matricula} — ${voluntarioResp.nome}`
+    : 'Não informado'
 
   return (
     <>
@@ -166,10 +168,7 @@ export function EmprestimoDetalhes({
                   <p className="text-sm text-gray-500 font-medium">Voluntário responsável</p>
                   <p className="text-base font-semibold text-gray-900 flex items-center gap-1.5">
                     <UserCheck className="w-4 h-4 text-gray-400" />
-                    {responsavelName}
-                  </p>
-                  <p className="text-sm text-gray-600">
-                    {emprestimo.expand?.responsavel?.matricula || '—'}
+                    {responsavelDisplay}
                   </p>
                 </div>
                 <div>
