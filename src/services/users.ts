@@ -41,7 +41,6 @@ export const createUser = async (data: CreateUserData): Promise<User> => {
     passwordConfirm: data.password,
     role: data.role,
     status: 'ativo',
-    verified: true,
   })
 }
 

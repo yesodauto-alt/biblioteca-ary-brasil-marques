@@ -85,6 +85,9 @@ export function VolunteerForm({ open, onOpenChange, editingUser, onSaved }: Volu
           role: form.role,
         })
         onSaved(created)
+        toast.success('Voluntário cadastrado com sucesso.', {
+          description: created?.matricula ? `Matrícula: ${created.matricula}` : undefined,
+        })
       }
       onOpenChange(false)
     } catch (error) {
