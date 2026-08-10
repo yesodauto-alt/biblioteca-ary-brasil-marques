@@ -254,7 +254,7 @@ export default function Emprestimos() {
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
-                        emp.expand?.leitor && openLeitor(emp.expand.leitor.id)
+                        if (emp.expand?.leitor) openLeitor(emp.expand.leitor.id)
                       }}
                       className="flex items-start gap-3 text-left hover:opacity-80 transition-opacity flex-1"
                     >
@@ -271,7 +271,7 @@ export default function Emprestimos() {
                     <button
                       onClick={(e) => {
                         e.stopPropagation()
-                        emp.expand?.livro && openLivro(emp.expand.livro.id)
+                        if (emp.expand?.livro) openLivro(emp.expand.livro.id)
                       }}
                       className="flex items-start gap-3 text-left hover:opacity-80 transition-opacity flex-1"
                     >
