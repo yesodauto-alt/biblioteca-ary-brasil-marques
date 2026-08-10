@@ -124,7 +124,7 @@ export function LeitorFicha({ leitorId, open, onOpenChange }: LeitorFichaProps) 
             </div>
           ) : leitor ? (
             <div className="mt-6 space-y-6">
-              <div className="bg-[#1F5C8B]/5 rounded-xl p-4 border border-[#1F5C8B]/20">
+              <div className="bg-[#1F5C8B]/5 rounded-lg p-4 border border-[#1F5C8B]/15">
                 <h2 className="text-2xl font-bold text-gray-900 break-words">
                   {leitor.nome_completo}
                 </h2>
@@ -147,16 +147,16 @@ export function LeitorFicha({ leitorId, open, onOpenChange }: LeitorFichaProps) 
               <div className="flex gap-3">
                 <Button
                   onClick={() => setEditOpen(true)}
-                  className="flex-1 h-12 text-base font-bold bg-[#1F5C8B] hover:bg-[#174A73]"
+                  className="flex-1 h-11 text-sm font-semibold bg-[#1F5C8B] hover:bg-[#174A73]"
                 >
-                  <Pencil className="w-5 h-5 mr-2" /> Editar usuário
+                  <Pencil className="w-4 h-4 mr-2" /> Editar usuário
                 </Button>
                 <Button
                   onClick={() => setDeleteOpen(true)}
                   variant="outline"
-                  className="flex-1 h-12 text-base font-bold border-red-300 text-red-600 hover:bg-red-50"
+                  className="flex-1 h-11 text-sm font-semibold border-red-200 text-red-600 hover:bg-red-50"
                 >
-                  <Trash2 className="w-5 h-5 mr-2" /> Excluir usuário
+                  <Trash2 className="w-4 h-4 mr-2" /> Excluir usuário
                 </Button>
               </div>
 
@@ -241,8 +241,8 @@ export function LeitorFicha({ leitorId, open, onOpenChange }: LeitorFichaProps) 
                           className={cn(
                             'border rounded-lg p-4',
                             situacao === 'Atrasado'
-                              ? 'bg-red-50 border-red-200'
-                              : 'bg-white border-gray-200',
+                              ? 'bg-red-50/60 border-red-200'
+                              : 'bg-white border-gray-200/80',
                           )}
                         >
                           <p className="text-lg font-bold text-gray-900">

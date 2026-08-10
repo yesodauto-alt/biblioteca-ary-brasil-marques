@@ -129,12 +129,12 @@ export default function Emprestimos() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-[#1F5C8B] flex items-center justify-center text-white shrink-0">
-            <ArrowLeftRight className="w-7 h-7" />
+          <div className="w-10 h-10 rounded-lg bg-[#1F5C8B] flex items-center justify-center text-white shrink-0">
+            <ArrowLeftRight className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Empréstimos</h2>
-            <p className="text-base text-gray-500">Empréstimos ativos da biblioteca</p>
+            <h2 className="text-xl font-bold text-gray-900 tracking-tight">Empréstimos</h2>
+            <p className="text-sm text-gray-500">Empréstimos ativos da biblioteca</p>
           </div>
         </div>
         <Button
@@ -142,19 +142,19 @@ export default function Emprestimos() {
             setFormLeitor(null)
             setFormOpen(true)
           }}
-          className="h-14 px-6 text-lg font-bold bg-[#1F5C8B] hover:bg-[#174A73] shadow-sm"
+          className="h-11 px-4 text-sm font-semibold bg-[#1F5C8B] hover:bg-[#174A73] shadow-sm"
         >
-          <Plus className="w-6 h-6 mr-2" />+ Novo empréstimo
+          <Plus className="w-5 h-5 mr-2" />+ Novo empréstimo
         </Button>
       </div>
 
       <div className="relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Buscar por usuário, número, livro..."
-          className="h-14 pl-14 text-base font-medium border-gray-300"
+          className="h-12 pl-12 text-base border-gray-200"
         />
       </div>
 
@@ -164,10 +164,10 @@ export default function Emprestimos() {
             key={f.value}
             onClick={() => setFilter(f.value)}
             className={cn(
-              'px-4 py-2 rounded-full text-base font-semibold transition-colors',
+              'px-3.5 py-1.5 rounded-full text-sm font-medium transition-all duration-200',
               filter === f.value
-                ? 'bg-[#1F5C8B] text-white'
-                : 'bg-gray-100 text-gray-700 hover:bg-gray-200',
+                ? 'bg-[#1F5C8B] text-white shadow-sm'
+                : 'bg-gray-50 text-gray-600 hover:bg-gray-100',
             )}
           >
             {f.label}
@@ -187,7 +187,7 @@ export default function Emprestimos() {
                 setFormLeitor(leitor)
                 setFormOpen(true)
               }}
-              className="w-full text-left bg-white border-2 border-gray-200 rounded-xl p-4 hover:border-[#1F5C8B] hover:bg-[#1F5C8B]/5 transition-colors duration-200"
+              className="w-full text-left bg-white border border-gray-200/80 rounded-lg p-4 hover:border-[#1F5C8B]/40 hover:bg-[#1F5C8B]/5 transition-all duration-200"
             >
               <div className="flex items-center gap-2">
                 <User className="w-6 h-6 text-[#1F5C8B] shrink-0" />
@@ -232,12 +232,12 @@ export default function Emprestimos() {
               <div
                 key={emp.id}
                 className={cn(
-                  'bg-white border rounded-xl p-5 transition-colors',
+                  'bg-white border rounded-lg p-4 transition-all duration-200',
                   situacao === 'atrasado'
-                    ? 'border-red-300 bg-red-50/30'
+                    ? 'border-red-200 bg-red-50/30'
                     : situacao === 'vence-hoje'
-                      ? 'border-yellow-300 bg-yellow-50/30'
-                      : 'border-gray-200',
+                      ? 'border-yellow-200 bg-yellow-50/30'
+                      : 'border-gray-200/80',
                 )}
               >
                 <div className="flex flex-col gap-4">

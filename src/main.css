@@ -6,64 +6,90 @@
 
 @layer base {
   :root {
-    --background: 60 14% 97%;
-    --foreground: 0 0% 10%;
-
+    --background: 40 20% 98%;
+    --foreground: 220 15% 12%;
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 10%;
-
+    --card-foreground: 220 15% 12%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 10%;
-
-    --primary: 206 63% 33%;
+    --popover-foreground: 220 15% 12%;
+    --primary: 205 60% 38%;
     --primary-foreground: 0 0% 100%;
-
     --secondary: 210 20% 96%;
-    --secondary-foreground: 206 63% 33%;
-
-    --muted: 210 20% 96%;
-    --muted-foreground: 0 0% 30%;
-
-    --accent: 206 63% 94%;
-    --accent-foreground: 206 63% 33%;
-
-    --destructive: 0 66% 47%;
+    --secondary-foreground: 205 60% 38%;
+    --muted: 210 16% 95%;
+    --muted-foreground: 220 10% 40%;
+    --accent: 205 60% 93%;
+    --accent-foreground: 205 60% 38%;
+    --destructive: 0 55% 50%;
     --destructive-foreground: 0 0% 100%;
-
-    --border: 0 0% 83%;
-    --input: 0 0% 83%;
-    --ring: 206 63% 33%;
-
+    --border: 220 10% 88%;
+    --input: 220 10% 88%;
+    --ring: 205 60% 45%;
     --radius: 0.5rem;
   }
 
   body {
-    background-color: #fafaf7;
-    color: #1a1a1a;
+    background-color: #f7f8fa;
+    color: #1e2433;
     font-family:
       'Inter',
       system-ui,
       -apple-system,
       sans-serif;
-    font-size: 18px;
+    font-size: 16px;
     line-height: 1.6;
-
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Accessibility Focus Ring */
   *:focus-visible {
-    outline: 3px solid #1f5c8b !important;
-    outline-offset: 2px !important;
+    outline: 2px solid hsl(205 60% 45%);
+    outline-offset: 2px;
+    border-radius: 4px;
   }
 
-  /* Ensure touch targets are accessible for volunteers */
   button,
+  a {
+    min-height: 40px;
+    transition:
+      background-color 200ms ease,
+      color 200ms ease,
+      border-color 200ms ease,
+      box-shadow 200ms ease,
+      opacity 200ms ease,
+      transform 100ms ease;
+  }
+
+  button:active:not(:disabled) {
+    transform: scale(0.985);
+  }
+
   input,
   select,
-  a {
-    min-height: 48px;
+  textarea {
+    min-height: 44px;
+  }
+
+  ::selection {
+    background-color: hsl(205 60% 90%);
+  }
+
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 4px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 0, 0, 0.18);
   }
 
   section[aria-label='Notifications alt+T'] {
@@ -84,7 +110,22 @@
     }
   }
 
+  @keyframes scale-in {
+    from {
+      opacity: 0;
+      transform: scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
   .animate-fade-in {
     animation: fade-in 0.25s ease-out forwards;
+  }
+
+  .animate-scale-in {
+    animation: scale-in 0.18s ease-out forwards;
   }
 }

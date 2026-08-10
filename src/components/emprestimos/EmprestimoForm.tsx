@@ -149,7 +149,7 @@ export function EmprestimoForm({
           </div>
         ) : !foundLivro ? (
           <div className="space-y-4">
-            <div className="bg-[#1F5C8B]/5 rounded-lg p-3 border border-[#1F5C8B]/20">
+            <div className="bg-[#1F5C8B]/5 rounded-lg p-3 border border-[#1F5C8B]/15">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="font-bold text-gray-900">{leitor.nome_completo}</p>
@@ -187,7 +187,7 @@ export function EmprestimoForm({
                   }
                 }}
                 placeholder="Digite o número e pressione ENTER..."
-                className="h-12 text-base"
+                className="h-11 text-base border-gray-200"
                 autoFocus
               />
               {bookLooking && <p className="text-sm text-gray-500">Buscando livro...</p>}
@@ -206,7 +206,9 @@ export function EmprestimoForm({
                   variant={tipo === 'comum' ? 'default' : 'outline'}
                   onClick={() => setTipo('comum')}
                   className={
-                    tipo === 'comum' ? 'flex-1 h-12 bg-[#1F5C8B] hover:bg-[#174A73]' : 'flex-1 h-12'
+                    tipo === 'comum'
+                      ? 'flex-1 h-11 text-sm font-medium bg-[#1F5C8B] hover:bg-[#174A73]'
+                      : 'flex-1 h-11 text-sm font-medium'
                   }
                 >
                   Comum
@@ -216,8 +218,8 @@ export function EmprestimoForm({
                   onClick={() => setTipo('estudo')}
                   className={
                     tipo === 'estudo'
-                      ? 'flex-1 h-12 bg-[#1F5C8B] hover:bg-[#174A73]'
-                      : 'flex-1 h-12'
+                      ? 'flex-1 h-11 text-sm font-medium bg-[#1F5C8B] hover:bg-[#174A73]'
+                      : 'flex-1 h-11 text-sm font-medium'
                   }
                 >
                   Estudo
@@ -235,7 +237,7 @@ export function EmprestimoForm({
           </div>
         ) : (
           <div className="space-y-4">
-            <div className="bg-[#1F5C8B]/5 rounded-lg p-4 border border-[#1F5C8B]/20 space-y-3">
+            <div className="bg-[#1F5C8B]/5 rounded-lg p-4 border border-[#1F5C8B]/15 space-y-3">
               <div>
                 <p className="text-sm text-gray-500 font-medium">Usuário</p>
                 <p className="text-base font-bold text-gray-900">{leitor.nome_completo}</p>
@@ -271,14 +273,14 @@ export function EmprestimoForm({
                   setFoundLivro(null)
                   setBookSearch('')
                 }}
-                className="flex-1 h-12 text-base font-semibold"
+                className="flex-1 h-11 text-sm font-medium"
               >
                 Voltar
               </Button>
               <Button
                 onClick={handleSubmit}
                 disabled={submitting}
-                className="flex-1 h-12 text-base font-bold bg-[#1F5C8B] hover:bg-[#174A73]"
+                className="flex-1 h-11 text-sm font-semibold bg-[#1F5C8B] hover:bg-[#174A73]"
               >
                 {submitting ? (
                   <Loader2 className="w-5 h-5 mr-2 animate-spin" />

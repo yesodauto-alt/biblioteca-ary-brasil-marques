@@ -102,7 +102,7 @@ export function LivroFicha({ livroId, open, onOpenChange }: LivroFichaProps) {
           ) : livro ? (
             <div className="mt-6 space-y-6">
               {/* Header info */}
-              <div className="bg-[#1F5C8B]/5 rounded-xl p-4 border border-[#1F5C8B]/20">
+              <div className="bg-[#1F5C8B]/5 rounded-lg p-4 border border-[#1F5C8B]/15">
                 <h2 className="text-2xl font-bold text-gray-900 break-words">{livro.titulo}</h2>
                 <div className="flex items-center gap-2 mt-2 flex-wrap">
                   <span className="text-base font-medium text-gray-600">
@@ -117,16 +117,16 @@ export function LivroFicha({ livroId, open, onOpenChange }: LivroFichaProps) {
               <div className="flex gap-3">
                 <Button
                   onClick={() => setEditOpen(true)}
-                  className="flex-1 h-12 text-base font-bold bg-[#1F5C8B] hover:bg-[#174A73]"
+                  className="flex-1 h-11 text-sm font-semibold bg-[#1F5C8B] hover:bg-[#174A73]"
                 >
-                  <Pencil className="w-5 h-5 mr-2" /> Editar livro
+                  <Pencil className="w-4 h-4 mr-2" /> Editar livro
                 </Button>
                 <Button
                   onClick={() => setDeleteOpen(true)}
                   variant="outline"
-                  className="flex-1 h-12 text-base font-bold border-red-300 text-red-600 hover:bg-red-50"
+                  className="flex-1 h-11 text-sm font-semibold border-red-200 text-red-600 hover:bg-red-50"
                 >
-                  <Trash2 className="w-5 h-5 mr-2" /> Excluir livro
+                  <Trash2 className="w-4 h-4 mr-2" /> Excluir livro
                 </Button>
               </div>
 
@@ -185,7 +185,7 @@ export function LivroFicha({ livroId, open, onOpenChange }: LivroFichaProps) {
 
               {/* Active loan details when emprestado */}
               {livro.status === 'emprestado' && activeLoan && (
-                <div className="bg-blue-50 rounded-xl p-4 border border-blue-200">
+                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
                   <h3 className="text-lg font-bold text-gray-900 mb-3 flex items-center gap-2">
                     <BookOpen className="w-5 h-5 text-[#1F5C8B]" />
                     Livro Emprestado

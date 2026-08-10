@@ -74,19 +74,19 @@ export default function Renovacao() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <div className="w-12 h-12 rounded-xl bg-[#1F5C8B] flex items-center justify-center text-white shrink-0">
-          <RefreshCw className="w-7 h-7" />
+        <div className="w-10 h-10 rounded-lg bg-[#1F5C8B] flex items-center justify-center text-white shrink-0">
+          <RefreshCw className="w-5 h-5" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Renovações</h2>
-          <p className="text-base text-gray-500">Renove empréstimos ativos</p>
+          <h2 className="text-xl font-bold text-gray-900 tracking-tight">Renovações</h2>
+          <p className="text-sm text-gray-500">Renove empréstimos ativos</p>
         </div>
       </div>
 
       {success && (
-        <div className="bg-green-50 border border-green-300 rounded-xl p-4 flex items-start gap-3 animate-fade-in">
-          <CheckCircle2 className="w-6 h-6 text-green-600 shrink-0 mt-0.5" />
-          <p className="text-lg font-semibold text-green-800">{success}</p>
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-start gap-3 animate-fade-in">
+          <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
+          <p className="text-base font-semibold text-green-800">{success}</p>
         </div>
       )}
 
@@ -98,7 +98,7 @@ export default function Renovacao() {
           </div>
         ) : (
           <>
-            <div className="bg-[#1F5C8B]/5 border border-[#1F5C8B]/20 rounded-lg p-4">
+            <div className="bg-[#1F5C8B]/5 border border-[#1F5C8B]/15 rounded-lg p-4">
               <div className="flex items-center justify-between">
                 <div>
                   <span className="text-lg font-bold text-gray-900">
@@ -146,12 +146,12 @@ export default function Renovacao() {
                         key={emp.id}
                         onClick={() => !isOverLimit && setSelectedLoan(emp)}
                         disabled={isOverLimit}
-                        className={`w-full text-left bg-white border-2 rounded-xl p-4 transition-colors duration-200 ${
+                        className={`w-full text-left bg-white border rounded-lg p-4 transition-all duration-200 ${
                           isOverLimit
                             ? 'border-gray-200 opacity-60 cursor-not-allowed'
                             : selectedLoan?.id === emp.id
                               ? 'border-[#1F5C8B] bg-[#1F5C8B]/5'
-                              : 'border-gray-200 hover:border-[#1F5C8B] hover:bg-[#1F5C8B]/5'
+                              : 'border-gray-200/80 hover:border-[#1F5C8B]/40 hover:bg-[#1F5C8B]/5'
                         }`}
                       >
                         <div className="flex items-center justify-between gap-2">
@@ -195,7 +195,7 @@ export default function Renovacao() {
             </div>
 
             {selectedLoan && config && (
-              <div className="bg-[#1F5C8B]/5 border-2 border-[#1F5C8B]/30 rounded-xl p-4 space-y-3">
+              <div className="bg-[#1F5C8B]/5 border border-[#1F5C8B]/20 rounded-lg p-4 space-y-3">
                 <div className="flex items-center justify-between">
                   <h3 className="text-lg font-bold text-gray-900">Confirmar Renovação</h3>
                   <Button variant="ghost" size="sm" onClick={() => setSelectedLoan(null)}>
@@ -216,12 +216,12 @@ export default function Renovacao() {
                 <Button
                   onClick={handleRenew}
                   disabled={renewing}
-                  className="w-full h-14 text-lg font-bold bg-[#1F5C8B] hover:bg-[#174A73]"
+                  className="w-full h-11 text-sm font-semibold bg-[#1F5C8B] hover:bg-[#174A73]"
                 >
                   {renewing ? (
-                    <Loader2 className="w-6 h-6 mr-2 animate-spin" />
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
                   ) : (
-                    <RefreshCw className="w-6 h-6 mr-2" />
+                    <RefreshCw className="w-5 h-5 mr-2" />
                   )}
                   Confirmar renovação
                 </Button>

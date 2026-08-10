@@ -78,12 +78,12 @@ export default function Relatorios() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <div className="w-12 h-12 rounded-xl bg-[#1F5C8B] flex items-center justify-center text-white shrink-0">
-          <BarChart3 className="w-7 h-7" />
+        <div className="w-10 h-10 rounded-lg bg-[#1F5C8B] flex items-center justify-center text-white shrink-0">
+          <BarChart3 className="w-5 h-5" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Relatórios</h2>
-          <p className="text-base text-gray-500">Consultas e resumos sobre o uso da biblioteca</p>
+          <h2 className="text-xl font-bold text-gray-900 tracking-tight">Relatórios</h2>
+          <p className="text-sm text-gray-500">Consultas e resumos sobre o uso da biblioteca</p>
         </div>
       </div>
 
@@ -102,10 +102,10 @@ export default function Relatorios() {
             variant="outline"
             onClick={() => setReportType(key)}
             className={cn(
-              'h-auto py-3 px-3 text-base font-semibold text-center justify-center break-words',
+              'h-auto py-2.5 px-3 text-sm font-medium text-center justify-center break-words',
               reportType === key
-                ? 'bg-[#1F5C8B] text-white hover:bg-[#174A73] border-[#1F5C8B]'
-                : 'border-gray-300 text-gray-700 hover:bg-gray-50',
+                ? 'bg-[#1F5C8B] text-white hover:bg-[#174A73] border-[#1F5C8B] shadow-sm'
+                : 'border-gray-200 text-gray-600 hover:bg-gray-50',
             )}
           >
             {def.label}
@@ -121,9 +121,9 @@ export default function Relatorios() {
           onClick={handleExport}
           disabled={loading || data.length === 0}
           variant="outline"
-          className="h-12 px-5 text-base font-semibold border-[#1F5C8B] text-[#1F5C8B] hover:bg-[#1F5C8B]/10"
+          className="h-11 px-4 text-sm font-medium border-[#1F5C8B] text-[#1F5C8B] hover:bg-[#1F5C8B]/10"
         >
-          <Download className="w-5 h-5 mr-2" />
+          <Download className="w-4 h-4 mr-2" />
           Exportar CSV
         </Button>
       </div>

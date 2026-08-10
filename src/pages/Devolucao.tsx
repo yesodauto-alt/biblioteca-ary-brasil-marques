@@ -158,19 +158,19 @@ export default function Devolucao() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <div className="w-12 h-12 rounded-xl bg-[#1F5C8B] flex items-center justify-center text-white shrink-0">
-          <CornerUpLeft className="w-7 h-7" />
+        <div className="w-10 h-10 rounded-lg bg-[#1F5C8B] flex items-center justify-center text-white shrink-0">
+          <CornerUpLeft className="w-5 h-5" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Devolução</h2>
-          <p className="text-base text-gray-500">Registro rápido de devoluções</p>
+          <h2 className="text-xl font-bold text-gray-900 tracking-tight">Devolução</h2>
+          <p className="text-sm text-gray-500">Registro rápido de devoluções</p>
         </div>
       </div>
 
       {success && (
-        <div className="bg-green-50 border border-green-300 rounded-xl p-4 flex items-start gap-3 animate-fade-in">
-          <CheckCircle2 className="w-6 h-6 text-green-600 shrink-0 mt-0.5" />
-          <p className="text-lg font-semibold text-green-800">{success}</p>
+        <div className="bg-green-50 border border-green-200 rounded-lg p-4 flex items-start gap-3 animate-fade-in">
+          <CheckCircle2 className="w-5 h-5 text-green-600 shrink-0 mt-0.5" />
+          <p className="text-base font-semibold text-green-800">{success}</p>
         </div>
       )}
 
@@ -188,7 +188,7 @@ export default function Devolucao() {
               }
             }}
             placeholder="Digite o número e pressione ENTER..."
-            className="h-14 text-lg font-medium border-gray-300"
+            className="h-12 text-base font-medium border-gray-200"
             autoFocus
           />
           {error && (
@@ -201,7 +201,7 @@ export default function Devolucao() {
 
         {emprestimo && (
           <div className="space-y-4 animate-fade-in">
-            <div className="bg-[#1F5C8B]/5 border border-[#1F5C8B]/20 rounded-lg p-4 space-y-4">
+            <div className="bg-[#1F5C8B]/5 border border-[#1F5C8B]/15 rounded-lg p-4 space-y-4">
               <div className="flex items-center gap-2 flex-wrap">
                 <BookOpen className="w-5 h-5 text-[#1F5C8B]" />
                 <span className="text-lg font-bold text-gray-900">
@@ -282,18 +282,18 @@ export default function Devolucao() {
                 ref={confirmRef}
                 onClick={handleConfirmDevolution}
                 disabled={submitting}
-                className="flex-1 h-16 text-xl font-bold bg-[#1F5C8B] hover:bg-[#174A73] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 h-12 text-base font-semibold bg-[#1F5C8B] hover:bg-[#174A73] disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <CheckCircle2 className="w-7 h-7 mr-2" />
+                <CheckCircle2 className="w-5 h-5 mr-2" />
                 Confirmar devolução
               </Button>
               <Button
                 onClick={handleOpenRenew}
                 disabled={!canRenew}
                 variant="outline"
-                className="flex-1 h-16 text-xl font-bold border-2 border-[#1F5C8B] text-[#1F5C8B] hover:bg-[#1F5C8B]/10 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 h-12 text-base font-semibold border-2 border-[#1F5C8B] text-[#1F5C8B] hover:bg-[#1F5C8B]/10 disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <RefreshCw className="w-7 h-7 mr-2" />
+                <RefreshCw className="w-5 h-5 mr-2" />
                 Renovar empréstimo
               </Button>
             </div>
@@ -335,14 +335,14 @@ export default function Devolucao() {
             <Button
               variant="outline"
               onClick={() => setRenewOpen(false)}
-              className="h-12 text-base font-semibold"
+              className="h-11 text-sm font-medium"
             >
               Cancelar
             </Button>
             <Button
               onClick={handleConfirmRenew}
               disabled={renewing}
-              className="h-12 text-base font-bold bg-[#1F5C8B] hover:bg-[#174A73]"
+              className="h-11 text-sm font-semibold bg-[#1F5C8B] hover:bg-[#174A73]"
             >
               {renewing ? 'Renovando...' : 'Confirmar renovação'}
             </Button>

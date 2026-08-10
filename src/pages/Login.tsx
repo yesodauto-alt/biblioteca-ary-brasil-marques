@@ -45,20 +45,20 @@ export default function Login() {
 
   return (
     <div className="min-h-screen bg-[#FAFAF7] flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-white rounded-xl border border-[#D4D4D4] shadow-elevation p-8 space-y-6 animate-fade-in">
+      <div className="w-full max-w-md bg-white rounded-lg border border-gray-200/80 shadow-elevation p-8 space-y-6 animate-fade-in">
         <div className="text-center space-y-3">
-          <div className="w-16 h-16 bg-[#1F5C8B] text-white rounded-2xl flex items-center justify-center mx-auto shadow-md">
-            <BookMarked className="w-10 h-10" />
+          <div className="w-14 h-14 bg-[#1F5C8B] text-white rounded-xl flex items-center justify-center mx-auto shadow-sm">
+            <BookMarked className="w-8 h-8" />
           </div>
-          <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+          <h1 className="text-xl md:text-2xl font-bold text-gray-900 tracking-tight">
             Biblioteca do Centro Espírita
           </h1>
-          <p className="text-gray-600 text-base">Acesso ao Sistema de Gestão</p>
+          <p className="text-gray-500 text-sm">Acesso ao Sistema de Gestão</p>
         </div>
 
         {errorMessage && (
-          <div className="p-4 bg-[#C62828]/10 border border-[#C62828] text-[#C62828] rounded-lg flex items-start gap-3 font-semibold text-base">
-            <AlertCircle className="w-6 h-6 shrink-0 mt-0.5" />
+          <div className="p-3.5 bg-red-50 border border-red-200 text-red-700 rounded-lg flex items-start gap-3 font-medium text-sm">
+            <AlertCircle className="w-5 h-5 shrink-0 mt-0.5" />
             <span>{errorMessage}</span>
           </div>
         )}
@@ -74,7 +74,7 @@ export default function Login() {
               placeholder="seu.email@exemplo.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="min-h-[52px] h-[52px] text-lg px-4 border-[#D4D4D4] focus-visible:ring-2 focus-visible:ring-[#1F5C8B]"
+              className="h-12 text-base px-4 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#1F5C8B]/30"
               required
             />
           </div>
@@ -89,7 +89,7 @@ export default function Login() {
               placeholder="Sua senha"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="min-h-[52px] h-[52px] text-lg px-4 border-[#D4D4D4] focus-visible:ring-2 focus-visible:ring-[#1F5C8B]"
+              className="h-12 text-base px-4 border-gray-200 focus-visible:ring-2 focus-visible:ring-[#1F5C8B]/30"
               required
             />
           </div>
@@ -97,14 +97,14 @@ export default function Login() {
           <Button
             type="submit"
             disabled={isSubmitting}
-            className="w-full min-h-[52px] h-[52px] bg-[#1F5C8B] hover:bg-[#174A70] text-white font-bold text-lg rounded-lg flex items-center justify-center gap-3 shadow-md"
+            className="w-full h-12 bg-[#1F5C8B] hover:bg-[#174A73] text-white font-semibold text-base rounded-lg flex items-center justify-center gap-2 shadow-sm"
           >
-            <LogIn className="w-6 h-6" />
+            <LogIn className="w-5 h-5" />
             <span>{isSubmitting ? 'Entrando...' : 'Entrar'}</span>
           </Button>
         </form>
 
-        <p className="text-center text-gray-600 text-sm border-t border-[#D4D4D4] pt-4">
+        <p className="text-center text-gray-400 text-sm border-t border-gray-100 pt-4">
           Este sistema é de uso interno dos voluntários.
         </p>
       </div>

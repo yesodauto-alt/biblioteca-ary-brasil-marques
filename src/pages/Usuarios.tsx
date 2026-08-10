@@ -67,31 +67,31 @@ export default function Usuarios() {
       {/* Header with New User button */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-xl bg-[#1F5C8B] flex items-center justify-center text-white shrink-0">
-            <Users className="w-7 h-7" />
+          <div className="w-10 h-10 rounded-lg bg-[#1F5C8B] flex items-center justify-center text-white shrink-0">
+            <Users className="w-5 h-5" />
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-gray-900">Usuários</h2>
-            <p className="text-base text-gray-500">Cadastro e acompanhamento dos leitores</p>
+            <h2 className="text-xl font-bold text-gray-900 tracking-tight">Usuários</h2>
+            <p className="text-sm text-gray-500">Cadastro e acompanhamento dos leitores</p>
           </div>
         </div>
         <Button
           onClick={() => setFormOpen(true)}
-          className="h-14 px-6 text-lg font-bold bg-[#1F5C8B] hover:bg-[#174A73] shadow-sm"
+          className="h-11 px-4 text-sm font-semibold bg-[#1F5C8B] hover:bg-[#174A73] shadow-sm"
         >
-          <UserPlus className="w-6 h-6 mr-2" />
+          <UserPlus className="w-5 h-5 mr-2" />
           Novo usuário
         </Button>
       </div>
 
       {/* Search */}
       <div className="relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Buscar por número, nome ou telefone..."
-          className="h-14 pl-14 text-base font-medium border-gray-300"
+          className="h-12 pl-12 text-base border-gray-200"
         />
       </div>
 
@@ -127,7 +127,7 @@ export default function Usuarios() {
             <button
               key={leitor.id}
               onClick={() => handleRowClick(leitor.id)}
-              className="w-full text-left bg-white border border-gray-200 rounded-lg p-4 hover:border-[#1F5C8B] hover:bg-[#1F5C8B]/5 transition-colors focus:outline-none focus:ring-2 focus:ring-[#1F5C8B] md:grid md:grid-cols-[120px_1fr_180px_120px] md:items-center md:gap-4 flex flex-col gap-2"
+              className="w-full text-left bg-white border border-gray-200/80 rounded-lg p-4 hover:border-[#1F5C8B]/40 hover:bg-[#1F5C8B]/5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#1F5C8B]/30 md:grid md:grid-cols-[120px_1fr_180px_120px] md:items-center md:gap-4 flex flex-col gap-2"
             >
               <div className="flex items-center gap-2">
                 <span className="md:hidden text-sm font-bold text-gray-500">Nº </span>

@@ -8,24 +8,24 @@ export default function Configuracoes() {
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-3">
-        <div className="w-12 h-12 rounded-xl bg-[#1F5C8B] flex items-center justify-center text-white shrink-0">
-          <Settings className="w-7 h-7" />
+        <div className="w-10 h-10 rounded-lg bg-[#1F5C8B] flex items-center justify-center text-white shrink-0">
+          <Settings className="w-5 h-5" />
         </div>
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">Configurações</h2>
-          <p className="text-base text-gray-500">Ajustes gerais do sistema</p>
+          <h2 className="text-xl font-bold text-gray-900 tracking-tight">Configurações</h2>
+          <p className="text-sm text-gray-500">Ajustes gerais do sistema</p>
         </div>
       </div>
 
       <Tabs defaultValue="emprestimos" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 max-w-xl h-12">
-          <TabsTrigger value="emprestimos" className="text-base font-semibold">
+        <TabsList className="grid w-full grid-cols-3 max-w-xl h-11">
+          <TabsTrigger value="emprestimos" className="text-sm font-medium">
             Empréstimos
           </TabsTrigger>
-          <TabsTrigger value="biblioteca" className="text-base font-semibold">
+          <TabsTrigger value="biblioteca" className="text-sm font-medium">
             Biblioteca
           </TabsTrigger>
-          <TabsTrigger value="voluntarios" className="text-base font-semibold">
+          <TabsTrigger value="voluntarios" className="text-sm font-medium">
             Voluntários
           </TabsTrigger>
         </TabsList>

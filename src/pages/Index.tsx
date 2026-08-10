@@ -152,11 +152,11 @@ export default function Index() {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white p-6 rounded-xl border border-[#D4D4D4] shadow-subtle">
-        <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
+      <div className="bg-white p-5 rounded-lg border border-gray-200/80 shadow-subtle">
+        <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
           Bem-vindo, {user?.name || 'Voluntário(a)'}!
         </h1>
-        <p className="text-base text-gray-600 mt-1">
+        <p className="text-sm text-gray-500 mt-1">
           Painel operacional da biblioteca — ações e informações do dia.
         </p>
       </div>
@@ -164,33 +164,34 @@ export default function Index() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <Button
           onClick={() => navigate('/emprestimos')}
-          className="h-16 text-xl font-bold bg-[#1F5C8B] hover:bg-[#174A73]"
+          className="h-12 text-base font-semibold bg-[#1F5C8B] hover:bg-[#174A73] shadow-sm"
         >
-          <Plus className="w-7 h-7 mr-2" />+ Novo empréstimo
+          <Plus className="w-5 h-5 mr-2" />
+          Novo empréstimo
         </Button>
         <Button
           onClick={() => navigate('/devolucao')}
-          className="h-16 text-xl font-bold bg-[#C62828] hover:bg-[#A31D1D]"
+          className="h-12 text-base font-semibold bg-[#C62828] hover:bg-[#A52727] shadow-sm"
         >
-          <CornerUpLeft className="w-7 h-7 mr-2" />
+          <CornerUpLeft className="w-5 h-5 mr-2" />
           Devolução
         </Button>
         <Button
           onClick={() => navigate('/renovacao')}
-          className="h-16 text-xl font-bold bg-[#2E7D32] hover:bg-[#1B5E20]"
+          className="h-12 text-base font-semibold bg-[#2E7D32] hover:bg-[#256628] shadow-sm"
         >
-          <RefreshCw className="w-7 h-7 mr-2" />
+          <RefreshCw className="w-5 h-5 mr-2" />
           Renovar empréstimo
         </Button>
       </div>
 
       <div className="relative">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400 z-10" />
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 z-10" />
         <Input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Buscar usuário ou livro..."
-          className="h-14 text-lg pl-14 border-gray-300"
+          className="h-12 text-base pl-12 border-gray-200"
         />
         {searchResults.length > 0 && (
           <>
@@ -226,18 +227,18 @@ export default function Index() {
             <div
               key={card.key}
               onClick={() => navigate(CARD_NAVIGATION[card.key])}
-              className="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
+              className="bg-white border border-gray-200/80 rounded-lg p-4 flex items-center gap-3 shadow-subtle cursor-pointer hover:shadow-elevation transition-all duration-200"
             >
               <div
-                className={`w-12 h-12 rounded-full flex items-center justify-center ${card.iconClass}`}
+                className={`w-10 h-10 rounded-full flex items-center justify-center ${card.iconClass}`}
               >
-                <Icon className="w-6 h-6" />
+                <Icon className="w-5 h-5" />
               </div>
               <div>
                 {loading ? (
-                  <Skeleton className="h-8 w-16" />
+                  <Skeleton className="h-7 w-14" />
                 ) : (
-                  <p className="text-3xl font-bold text-gray-900">{value}</p>
+                  <p className="text-2xl font-bold text-gray-900 tabular-nums">{value}</p>
                 )}
                 <p className="text-sm font-medium text-gray-500 leading-tight">{card.label}</p>
               </div>
@@ -247,7 +248,7 @@ export default function Index() {
       </div>
 
       <div className="space-y-3">
-        <h2 className="text-2xl font-bold text-gray-900">ATENÇÃO HOJE</h2>
+        <h2 className="text-xl font-bold text-gray-900 tracking-tight">ATENÇÃO HOJE</h2>
         {loading ? (
           <div className="space-y-2">
             <Skeleton className="h-20 w-full" />
@@ -265,10 +266,10 @@ export default function Index() {
             {attentionItems.map((item) => (
               <div
                 key={item.id}
-                className={`rounded-xl p-4 border-2 flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 ${
+                className={`rounded-lg p-4 border flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 ${
                   item.situacao === 'atrasado'
-                    ? 'bg-red-50 border-red-300'
-                    : 'bg-amber-50 border-amber-300'
+                    ? 'bg-red-50/60 border-red-200'
+                    : 'bg-amber-50/60 border-amber-200'
                 }`}
               >
                 <button
