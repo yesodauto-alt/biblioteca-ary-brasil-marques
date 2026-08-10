@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { UserPlus, Search, Users, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,6 +18,8 @@ export default function Usuarios() {
   const [formOpen, setFormOpen] = useState(false)
   const [fichaId, setFichaId] = useState<string | null>(null)
   const [fichaOpen, setFichaOpen] = useState(false)
+  const [searchParams] = useSearchParams()
+  const statusFilter = searchParams.get('filter') || ''
 
   const loadData = useCallback(async () => {
     try {
@@ -39,15 +42,16 @@ export default function Usuarios() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
-    if (!q) return leitores
     return leitores.filter((l) => {
+      if (statusFilter && l.status !== statusFilter) return false
+      if (!q) return true
       return (
         l.numero_cadastro.toLowerCase().includes(q) ||
         l.nome_completo.toLowerCase().includes(q) ||
         l.telefone.toLowerCase().includes(q)
       )
     })
-  }, [leitores, search])
+  }, [leitores, search, statusFilter])
 
   const handleRowClick = (id: string) => {
     setFichaId(id)

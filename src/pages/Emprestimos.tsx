@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { ArrowLeftRight, Search, BookOpen, User, Calendar, Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -36,7 +37,10 @@ export default function Emprestimos() {
   const [emprestimos, setEmprestimos] = useState<EmprestimoWithLeitor[]>([])
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
-  const [filter, setFilter] = useState<FilterType>('todos')
+  const [searchParams] = useSearchParams()
+  const [filter, setFilter] = useState<FilterType>(
+    (searchParams.get('filter') as FilterType) || 'todos',
+  )
   const [leitorFichaId, setLeitorFichaId] = useState<string | null>(null)
   const [leitorFichaOpen, setLeitorFichaOpen] = useState(false)
   const [livroFichaId, setLivroFichaId] = useState<string | null>(null)

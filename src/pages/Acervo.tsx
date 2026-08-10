@@ -1,4 +1,5 @@
 import { useEffect, useState, useMemo, useCallback } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import { BookPlus, Search, BookOpen, Library } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -17,6 +18,8 @@ export default function Acervo() {
   const [formOpen, setFormOpen] = useState(false)
   const [fichaId, setFichaId] = useState<string | null>(null)
   const [fichaOpen, setFichaOpen] = useState(false)
+  const [searchParams] = useSearchParams()
+  const statusFilter = searchParams.get('filter') || ''
 
   const loadData = useCallback(async () => {
     try {
@@ -39,8 +42,9 @@ export default function Acervo() {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase()
-    if (!q) return livros
     return livros.filter((l) => {
+      if (statusFilter && l.status !== statusFilter) return false
+      if (!q) return true
       return (
         l.numero_cadastro.toLowerCase().includes(q) ||
         l.titulo.toLowerCase().includes(q) ||
@@ -48,7 +52,7 @@ export default function Acervo() {
         l.editora.toLowerCase().includes(q)
       )
     })
-  }, [livros, search])
+  }, [livros, search, statusFilter])
 
   const handleRowClick = (id: string) => {
     setFichaId(id)

@@ -71,6 +71,15 @@ const STAT_CARDS: Array<{
   },
 ]
 
+const CARD_NAVIGATION: Record<string, string> = {
+  livrosEmprestados: '/emprestimos?filter=todos',
+  devolucoesPrevistasHoje: '/emprestimos?filter=vence-hoje',
+  emprestimosAtrasados: '/emprestimos?filter=atrasados',
+  usuariosAtivos: '/usuarios?filter=ativo',
+  livrosDisponiveis: '/acervo?filter=' + encodeURIComponent('disponível'),
+  devolucoesRealizadasHoje: '/devolucoes-hoje',
+}
+
 function formatDate(dateStr: string): string {
   if (!dateStr) return '—'
   return new Date(dateStr + 'T00:00:00').toLocaleDateString('pt-BR')
@@ -216,7 +225,8 @@ export default function Index() {
           return (
             <div
               key={card.key}
-              className="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4 shadow-sm"
+              onClick={() => navigate(CARD_NAVIGATION[card.key])}
+              className="bg-white border border-gray-200 rounded-xl p-5 flex items-center gap-4 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
             >
               <div
                 className={`w-12 h-12 rounded-full flex items-center justify-center ${card.iconClass}`}

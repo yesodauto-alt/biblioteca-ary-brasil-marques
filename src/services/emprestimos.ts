@@ -120,6 +120,15 @@ export const getActiveEmprestimoByLivroCadastro = async (
     )
 }
 
+export const getDevolucoesHoje = async (): Promise<EmprestimoWithLeitor[]> => {
+  const today = new Date().toISOString().split('T')[0]
+  return await pb.collection('emprestimos').getFullList<EmprestimoWithLeitor>({
+    filter: `status = "devolvido" && data_devolucao_real = "${today}"`,
+    sort: '-updated',
+    expand: 'leitor,livro',
+  })
+}
+
 export const devolverEmprestimo = async (id: string): Promise<Emprestimo> => {
   const today = new Date().toISOString().split('T')[0]
   return await pb.collection('emprestimos').update<Emprestimo>(id, {

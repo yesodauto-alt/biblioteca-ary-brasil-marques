@@ -12,6 +12,7 @@ import Usuarios from '@/pages/Usuarios'
 import Acervo from '@/pages/Acervo'
 import Emprestimos from '@/pages/Emprestimos'
 import Devolucao from '@/pages/Devolucao'
+import DevolucoesHoje from '@/pages/DevolucoesHoje'
 import Renovacao from '@/pages/Renovacao'
 import Relatorios from '@/pages/Relatorios'
 import Configuracoes from '@/pages/Configuracoes'
@@ -40,6 +41,7 @@ const App = () => (
             <Route path="/acervo" element={<Acervo />} />
             <Route path="/emprestimos" element={<Emprestimos />} />
             <Route path="/devolucao" element={<Devolucao />} />
+            <Route path="/devolucoes-hoje" element={<DevolucoesHoje />} />
             <Route path="/renovacao" element={<Renovacao />} />
             <Route path="/relatorios" element={<Relatorios />} />
             <Route path="/cursos" element={<Cursos />} />
