@@ -1,4 +1,5 @@
 import pb from '@/lib/pocketbase/client'
+import { getSituacao, getTodayInTimezone, getDaysOverdue, isValidDate } from '@/lib/loan-utils'
 
 export interface DashboardStats {
   livrosEmprestados: number
@@ -18,6 +19,7 @@ export interface AttentionItem {
   livroTitulo: string
   dataPrevistaDevolucao: string
   situacao: 'atrasado' | 'hoje'
+  daysOverdue: number | null
 }
 
 export interface SearchResult {
@@ -27,15 +29,11 @@ export interface SearchResult {
   secondary: string
 }
 
-function todayStr(): string {
-  return new Date().toISOString().split('T')[0]
-}
-
 export async function fetchDashboardData(): Promise<{
   stats: DashboardStats
   attentionItems: AttentionItem[]
 }> {
-  const today = todayStr()
+  const today = getTodayInTimezone()
 
   const [activeRes, devolvidosRes, leitoresRes, livrosRes] = await Promise.allSettled([
     pb.collection('emprestimos').getFullList({
@@ -59,8 +57,16 @@ export async function fetchDashboardData(): Promise<{
   const usuariosAtivos = leitoresRes.status === 'fulfilled' ? leitoresRes.value.totalItems : 0
   const livrosDisponiveis = livrosRes.status === 'fulfilled' ? livrosRes.value.totalItems : 0
 
-  const overdue = activeEmprestimos.filter((e: any) => e.data_prevista_devolucao < today)
-  const dueToday = activeEmprestimos.filter((e: any) => e.data_prevista_devolucao === today)
+  const overdue = activeEmprestimos.filter(
+    (e: any) =>
+      isValidDate(e.data_prevista_devolucao) &&
+      getSituacao(e.data_prevista_devolucao) === 'atrasado',
+  )
+  const dueToday = activeEmprestimos.filter(
+    (e: any) =>
+      isValidDate(e.data_prevista_devolucao) &&
+      getSituacao(e.data_prevista_devolucao) === 'vence-hoje',
+  )
 
   const stats: DashboardStats = {
     livrosEmprestados: activeEmprestimos.length,
@@ -80,6 +86,7 @@ export async function fetchDashboardData(): Promise<{
     livroTitulo: e.expand?.livro?.titulo || '—',
     dataPrevistaDevolucao: e.data_prevista_devolucao,
     situacao,
+    daysOverdue: situacao === 'atrasado' ? getDaysOverdue(e.data_prevista_devolucao) : null,
   })
 
   const attentionItems: AttentionItem[] = [

@@ -1,4 +1,5 @@
 import pb from '@/lib/pocketbase/client'
+import { getTodayInTimezone } from '@/lib/loan-utils'
 
 export interface PeriodFilter {
   start: string
@@ -127,7 +128,7 @@ export async function fetchRenovacoesRealizadas(period: PeriodFilter): Promise<R
 
 export async function fetchEmprestimosAtivos(_period?: PeriodFilter): Promise<EmprestimoRow[]> {
   const records = await pb.collection('emprestimos').getFullList({
-    filter: `status = "ativo"`,
+    filter: `status = "ativo" || status = "atrasado"`,
     sort: '-data_emprestimo',
     expand: 'leitor,livro',
   })
@@ -135,9 +136,9 @@ export async function fetchEmprestimosAtivos(_period?: PeriodFilter): Promise<Em
 }
 
 export async function fetchEmprestimosAtrasados(_period?: PeriodFilter): Promise<EmprestimoRow[]> {
-  const today = new Date().toISOString().split('T')[0]
+  const today = getTodayInTimezone()
   const records = await pb.collection('emprestimos').getFullList({
-    filter: `status = "ativo" && data_prevista_devolucao < "${today}"`,
+    filter: `(status = "ativo" || status = "atrasado") && data_prevista_devolucao != "" && data_prevista_devolucao < "${today}"`,
     sort: 'data_prevista_devolucao',
     expand: 'leitor,livro',
   })

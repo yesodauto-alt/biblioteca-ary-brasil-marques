@@ -6,17 +6,7 @@ import { LeitorFicha } from '@/components/usuarios/LeitorFicha'
 import { getDevolucoesHoje, type EmprestimoWithLeitor } from '@/services/emprestimos'
 import { useRealtime } from '@/hooks/use-realtime'
 import { toast } from 'sonner'
-
-function formatDateTime(dateStr: string): string {
-  if (!dateStr) return '—'
-  return new Date(dateStr).toLocaleString('pt-BR', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
-}
+import { formatDateTime } from '@/lib/loan-utils'
 
 export default function DevolucoesHoje() {
   const [devolucoes, setDevolucoes] = useState<EmprestimoWithLeitor[]>([])

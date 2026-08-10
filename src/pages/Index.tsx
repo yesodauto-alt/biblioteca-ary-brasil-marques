@@ -26,46 +26,54 @@ import {
   type AttentionItem,
   type SearchResult,
 } from '@/services/dashboard'
+import { formatDate } from '@/lib/loan-utils'
 
 const STAT_CARDS: Array<{
   key: keyof DashboardStats
-  label: string
+  labelSingular: string
+  labelPlural: string
   icon: typeof BookOpen
   iconClass: string
 }> = [
   {
     key: 'livrosEmprestados',
-    label: 'Livros emprestados',
+    labelSingular: 'Livro emprestado',
+    labelPlural: 'Livros emprestados',
     icon: BookOpen,
     iconClass: 'bg-blue-50 text-blue-600',
   },
   {
     key: 'devolucoesPrevistasHoje',
-    label: 'Devoluções previstas para hoje',
+    labelSingular: 'Devolução prevista para hoje',
+    labelPlural: 'Devoluções previstas para hoje',
     icon: Calendar,
     iconClass: 'bg-amber-50 text-amber-600',
   },
   {
     key: 'emprestimosAtrasados',
-    label: 'Empréstimos atrasados',
+    labelSingular: 'Empréstimo atrasado',
+    labelPlural: 'Empréstimos atrasados',
     icon: AlertTriangle,
     iconClass: 'bg-red-50 text-red-600',
   },
   {
     key: 'usuariosAtivos',
-    label: 'Usuários ativos',
+    labelSingular: 'Usuário ativo',
+    labelPlural: 'Usuários ativos',
     icon: Users,
     iconClass: 'bg-green-50 text-green-600',
   },
   {
     key: 'livrosDisponiveis',
-    label: 'Livros disponíveis',
+    labelSingular: 'Livro disponível',
+    labelPlural: 'Livros disponíveis',
     icon: CheckCircle2,
     iconClass: 'bg-teal-50 text-teal-600',
   },
   {
     key: 'devolucoesRealizadasHoje',
-    label: 'Devoluções realizadas hoje',
+    labelSingular: 'Devolução realizada hoje',
+    labelPlural: 'Devoluções realizadas hoje',
     icon: CornerUpLeft,
     iconClass: 'bg-purple-50 text-purple-600',
   },
@@ -78,11 +86,6 @@ const CARD_NAVIGATION: Record<string, string> = {
   usuariosAtivos: '/usuarios?filter=ativo',
   livrosDisponiveis: '/acervo?filter=' + encodeURIComponent('disponível'),
   devolucoesRealizadasHoje: '/devolucoes-hoje',
-}
-
-function formatDate(dateStr: string): string {
-  if (!dateStr) return '—'
-  return new Date(dateStr + 'T00:00:00').toLocaleDateString('pt-BR')
 }
 
 export default function Index() {
@@ -240,7 +243,9 @@ export default function Index() {
                 ) : (
                   <p className="text-2xl font-bold text-gray-900 tabular-nums">{value}</p>
                 )}
-                <p className="text-sm font-medium text-gray-500 leading-tight">{card.label}</p>
+                <p className="text-sm font-medium text-gray-500 leading-tight">
+                  {value === 1 ? card.labelSingular : card.labelPlural}
+                </p>
               </div>
             </div>
           )
@@ -285,8 +290,15 @@ export default function Index() {
                 >
                   <p className="text-base font-semibold text-[#1F5C8B]">{item.livroTitulo}</p>
                   <p className="text-sm text-gray-500">
-                    Devolução: {formatDate(item.dataPrevistaDevolucao)}
+                    Devolução prevista: {formatDate(item.dataPrevistaDevolucao)}
                   </p>
+                  {item.situacao === 'atrasado' && item.daysOverdue !== null && (
+                    <p className="text-sm font-bold text-red-600">
+                      {item.daysOverdue === 1
+                        ? '1 dia de atraso'
+                        : `${item.daysOverdue} dias de atraso`}
+                    </p>
+                  )}
                 </button>
                 <Badge
                   className={

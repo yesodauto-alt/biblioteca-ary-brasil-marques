@@ -104,10 +104,12 @@ export function EmprestimoForm({
   }
 
   const comumCount = activeLoans.filter(
-    (e) => e.status === 'ativo' && (e.tipo_emprestimo || 'comum') === 'comum',
+    (e) =>
+      (e.status === 'ativo' || e.status === 'atrasado') &&
+      (e.tipo_emprestimo || 'comum') === 'comum',
   ).length
   const estudoCount = activeLoans.filter(
-    (e) => e.status === 'ativo' && e.tipo_emprestimo === 'estudo',
+    (e) => (e.status === 'ativo' || e.status === 'atrasado') && e.tipo_emprestimo === 'estudo',
   ).length
   const limiteComum = config?.limite_livros_por_usuario || 1
   const wouldExceed = tipo === 'comum' ? comumCount >= limiteComum : estudoCount >= 1

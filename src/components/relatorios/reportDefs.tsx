@@ -1,5 +1,7 @@
 import type { ReportColumn } from '@/components/relatorios/ReportTable'
 import type { PeriodFilter } from '@/services/relatorios'
+import { getSituacao as getLoanSituacao, formatDate } from '@/lib/loan-utils'
+export { formatDate }
 import {
   fetchEmprestimosRealizados,
   fetchDevolucoesRealizadas,
@@ -36,28 +38,22 @@ export interface ReportDef {
   highlightRow?: (row: any) => boolean
 }
 
-export function formatDate(dateStr: string): string {
-  if (!dateStr) return '—'
-  const date = new Date(dateStr.includes('T') ? dateStr : dateStr + 'T00:00:00')
-  return date.toLocaleDateString('pt-BR')
-}
-
 function capitalize(s: string): string {
   if (!s) return '—'
   return s.charAt(0).toUpperCase() + s.slice(1)
 }
 
-function getSituacao(r: any): string {
+function getRowSituacao(r: any): string {
   if (r.dataDevolucaoReal) {
     const dev = new Date(r.dataDevolucaoReal + 'T00:00:00')
     const due = new Date(r.dataPrevistaDevolucao + 'T00:00:00')
     return dev > due ? 'Devolvido com atraso' : 'Devolvido no prazo'
   }
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const due = new Date(r.dataPrevistaDevolucao + 'T00:00:00')
-  due.setHours(0, 0, 0, 0)
-  return today > due ? 'Atrasado' : 'No prazo'
+  const situacao = getLoanSituacao(r.dataPrevistaDevolucao)
+  if (situacao === 'atrasado') return 'Atrasado'
+  if (situacao === 'vence-hoje') return 'Vence hoje'
+  if (situacao === 'sem-data') return 'Data não informada'
+  return 'No prazo'
 }
 
 export function getReportDefs(h: ClickHandlers): Record<ReportType, ReportDef> {
@@ -80,7 +76,10 @@ export function getReportDefs(h: ClickHandlers): Record<ReportType, ReportDef> {
     render: (r: any) => r[accessor] ?? '—',
     onClick: (r: any) => handler(r[idAccessor]),
   })
-  const situacaoCol: ReportColumn<any> = { header: 'Situação', render: (r: any) => getSituacao(r) }
+  const situacaoCol: ReportColumn<any> = {
+    header: 'Situação',
+    render: (r: any) => getRowSituacao(r),
+  }
   const statusCol: ReportColumn<any> = {
     header: 'Status',
     render: (r: any) => capitalize(r.status),
@@ -147,7 +146,7 @@ export function getReportDefs(h: ClickHandlers): Record<ReportType, ReportDef> {
         r.livroNumero,
         r.dataEmprestimo,
         r.dataDevolucaoReal,
-        getSituacao(r),
+        getRowSituacao(r),
       ],
       fetchData: (p) => fetchDevolucoesRealizadas(p),
     },
@@ -208,7 +207,7 @@ export function getReportDefs(h: ClickHandlers): Record<ReportType, ReportDef> {
         r.livroNumero,
         r.dataEmprestimo,
         r.dataPrevistaDevolucao,
-        getSituacao(r),
+        getRowSituacao(r),
       ],
       fetchData: (p) => fetchEmprestimosAtivos(p),
     },
@@ -240,7 +239,7 @@ export function getReportDefs(h: ClickHandlers): Record<ReportType, ReportDef> {
         r.livroNumero,
         r.dataEmprestimo,
         r.dataPrevistaDevolucao,
-        getSituacao(r),
+        getRowSituacao(r),
       ],
       fetchData: (p) => fetchEmprestimosAtrasados(p),
       highlightRow: () => true,

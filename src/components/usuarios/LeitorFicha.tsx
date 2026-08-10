@@ -17,34 +17,18 @@ import { Pencil, Trash2 } from 'lucide-react'
 import { toast } from 'sonner'
 import { useRealtime } from '@/hooks/use-realtime'
 import { cn } from '@/lib/utils'
-import { formatDateTime } from '@/lib/loan-utils'
+import {
+  formatDateTime,
+  formatDate,
+  getSituacao,
+  SITUACAO_LABELS,
+  SITUACAO_BADGE,
+} from '@/lib/loan-utils'
 
 interface LeitorFichaProps {
   leitorId: string | null
   open: boolean
   onOpenChange: (open: boolean) => void
-}
-
-function formatDate(dateStr: string): string {
-  if (!dateStr) return '—'
-  return new Date(dateStr + 'T00:00:00').toLocaleDateString('pt-BR')
-}
-
-function getSituacao(dataPrevista: string): string {
-  if (!dataPrevista) return 'Em dia'
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const previsto = new Date(dataPrevista + 'T00:00:00')
-  previsto.setHours(0, 0, 0, 0)
-  if (today < previsto) return 'Em dia'
-  if (today.getTime() === previsto.getTime()) return 'Vence hoje'
-  return 'Atrasado'
-}
-
-const SITUACAO_BADGE: Record<string, string> = {
-  'Em dia': 'bg-green-100 text-green-800 hover:bg-green-100',
-  'Vence hoje': 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100',
-  Atrasado: 'bg-red-100 text-red-800 hover:bg-red-100',
 }
 
 const TIPO_LABELS: Record<string, string> = { comum: 'Comum', estudo: 'Estudo' }
@@ -111,7 +95,9 @@ export function LeitorFicha({ leitorId, open, onOpenChange }: LeitorFichaProps) 
     open,
   )
 
-  const activeLoans = emprestimos.filter((e) => e.status === 'ativo' && !e.data_devolucao_real)
+  const activeLoans = emprestimos.filter(
+    (e) => (e.status === 'ativo' || e.status === 'atrasado') && !e.data_devolucao_real,
+  )
   const comumCount = activeLoans.filter((e) => (e.tipo_emprestimo || 'comum') === 'comum').length
   const estudoCount = activeLoans.filter((e) => e.tipo_emprestimo === 'estudo').length
 
@@ -245,9 +231,11 @@ export function LeitorFicha({ leitorId, open, onOpenChange }: LeitorFichaProps) 
                           key={emp.id}
                           className={cn(
                             'border rounded-lg p-4',
-                            situacao === 'Atrasado'
+                            situacao === 'atrasado'
                               ? 'bg-red-50/60 border-red-200'
-                              : 'bg-white border-gray-200/80',
+                              : situacao === 'sem-data'
+                                ? 'bg-gray-50 border-gray-200'
+                                : 'bg-white border-gray-200/80',
                           )}
                         >
                           <p className="text-lg font-bold text-gray-900">
@@ -267,8 +255,10 @@ export function LeitorFicha({ leitorId, open, onOpenChange }: LeitorFichaProps) 
                             <p>Devolução: {formatDate(emp.data_prevista_devolucao)}</p>
                             <p className="flex items-center gap-2">
                               Situação:{' '}
-                              <Badge className={SITUACAO_BADGE[situacao]}>{situacao}</Badge>
-                            </p>
+                              <Badge className={SITUACAO_BADGE[situacao]}>
+                                {SITUACAO_LABELS[situacao]}
+                              </Badge>
+                            </p>{' '}
                             {emp.expand?.responsavel && (
                               <p className="text-sm text-gray-600">
                                 Responsável: {emp.expand.responsavel.matricula || '—'} —{' '}
