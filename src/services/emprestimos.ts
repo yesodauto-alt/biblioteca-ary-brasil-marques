@@ -11,7 +11,8 @@ export interface Emprestimo {
   data_devolucao_real: string
   status: 'ativo' | 'devolvido' | 'atrasado'
   quantidade_renovacoes: number
-  responsavel: string
+  responsavel?: string
+  responsavel_voluntario?: string
   tipo_emprestimo: 'comum' | 'estudo'
   created: string
   updated: string
@@ -50,7 +51,7 @@ export const getEmprestimosByLivro = async (livroId: string): Promise<Emprestimo
 export interface CreateEmprestimoData {
   leitor: string
   livro: string
-  responsavel: string
+  responsavel_voluntario: string
   tipo_emprestimo?: 'comum' | 'estudo'
 }
 
@@ -85,7 +86,7 @@ export const createEmprestimo = async (data: CreateEmprestimoData): Promise<Empr
     data_prevista_devolucao: toDateStr(returnDate),
     status: 'ativo',
     quantidade_renovacoes: 0,
-    responsavel: data.responsavel,
+    responsavel_voluntario: data.responsavel_voluntario,
     tipo_emprestimo: tipo,
   })
 }

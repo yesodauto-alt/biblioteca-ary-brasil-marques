@@ -125,7 +125,7 @@ export function EmprestimoForm({
       const created = await createEmprestimo({
         leitor: leitor.id,
         livro: foundLivro.id,
-        responsavel: selectedVoluntario,
+        responsavel_voluntario: selectedVoluntario,
         tipo_emprestimo: tipo,
       })
       await updateLivroStatus(foundLivro.id, 'emprestado')

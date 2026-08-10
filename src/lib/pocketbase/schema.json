@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-10T04:51:30.069Z",
+  "generatedAt": "2026-08-10T05:11:05.674Z",
   "collections": [
     {
       "name": "users",
@@ -301,7 +301,7 @@
         {
           "name": "responsavel",
           "type": "relation",
-          "required": true,
+          "required": false,
           "system": false,
           "collectionRef": "users"
         },
