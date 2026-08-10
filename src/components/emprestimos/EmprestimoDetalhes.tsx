@@ -108,10 +108,12 @@ export function EmprestimoDetalhes({
                   <div>
                     <p className="text-sm text-gray-500 font-medium">Usuário</p>
                     <p className="text-base font-bold text-gray-900">
-                      {emprestimo.expand?.leitor?.nome_completo || '—'}
+                      {emprestimo.expand?.leitor?.nome_completo || 'Registro não encontrado'}
                     </p>
                     <p className="text-sm text-gray-600">
-                      Nº {emprestimo.expand?.leitor?.numero_cadastro || '—'}
+                      {emprestimo.expand?.leitor?.numero_cadastro
+                        ? `Nº ${emprestimo.expand.leitor.numero_cadastro}`
+                        : '—'}
                     </p>
                   </div>
                 </div>
@@ -120,11 +122,12 @@ export function EmprestimoDetalhes({
                   <div>
                     <p className="text-sm text-gray-500 font-medium">Livro</p>
                     <p className="text-base font-bold text-gray-900">
-                      {emprestimo.expand?.livro?.titulo || '—'}
+                      {emprestimo.expand?.livro?.titulo || 'Registro não encontrado'}
                     </p>
                     <p className="text-sm text-gray-600">
-                      Nº {emprestimo.expand?.livro?.numero_cadastro || '—'} ·{' '}
-                      {emprestimo.expand?.livro?.autor || '—'}
+                      {emprestimo.expand?.livro?.numero_cadastro
+                        ? `Nº ${emprestimo.expand.livro.numero_cadastro} · ${emprestimo.expand.livro.autor || '—'}`
+                        : '—'}
                     </p>
                   </div>
                 </div>

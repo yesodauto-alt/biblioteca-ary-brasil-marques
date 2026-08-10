@@ -264,7 +264,9 @@ export default function Emprestimos() {
                           {emp.expand?.leitor?.nome_completo || 'Leitor não encontrado'}
                         </p>
                         <p className="text-base text-gray-600">
-                          Nº {emp.expand?.leitor?.numero_cadastro || '—'}
+                          {emp.expand?.leitor?.numero_cadastro
+                            ? `Nº ${emp.expand.leitor.numero_cadastro}`
+                            : '—'}
                         </p>
                       </div>
                     </button>
@@ -281,7 +283,9 @@ export default function Emprestimos() {
                           {emp.expand?.livro?.titulo || 'Livro não encontrado'}
                         </p>
                         <p className="text-base text-gray-600">
-                          Nº {emp.expand?.livro?.numero_cadastro || '—'}
+                          {emp.expand?.livro?.numero_cadastro
+                            ? `Nº ${emp.expand.livro.numero_cadastro}`
+                            : '—'}
                         </p>
                       </div>
                     </button>
