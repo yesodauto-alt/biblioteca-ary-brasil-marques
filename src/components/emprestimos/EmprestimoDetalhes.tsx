@@ -77,6 +77,12 @@ export function EmprestimoDetalhes({
   const responsavelDisplay = voluntarioResp
     ? `${voluntarioResp.matricula} — ${voluntarioResp.nome}`
     : 'Não informado'
+  const dataEmprestimoDisplay = emprestimo?.data_emprestimo
+    ? formatDate(emprestimo.data_emprestimo)
+    : 'Não informado'
+  const dataPrevistaDisplay = emprestimo?.data_prevista_devolucao
+    ? formatDate(emprestimo.data_prevista_devolucao)
+    : 'Não informado'
 
   return (
     <>
@@ -157,14 +163,14 @@ export function EmprestimoDetalhes({
                   <p className="text-sm text-gray-500 font-medium">Data do empréstimo</p>
                   <p className="text-base font-semibold text-gray-900 flex items-center gap-1.5">
                     <Calendar className="w-4 h-4 text-gray-400" />
-                    {formatDate(emprestimo.data_emprestimo)}
+                    {dataEmprestimoDisplay}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm text-gray-500 font-medium">Devolução prevista</p>
                   <p className="text-base font-semibold text-gray-900 flex items-center gap-1.5">
                     <Calendar className="w-4 h-4 text-gray-400" />
-                    {formatDate(emprestimo.data_prevista_devolucao)}
+                    {dataPrevistaDisplay}
                   </p>
                 </div>
                 <div>
