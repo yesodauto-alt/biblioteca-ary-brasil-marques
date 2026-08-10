@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-10T03:33:36.404Z",
+  "generatedAt": "2026-08-10T03:37:03.284Z",
   "collections": [
     {
       "name": "users",
@@ -299,12 +299,6 @@
           "selectValues": ["ativo", "devolvido", "atrasado"]
         },
         {
-          "name": "quantidade_renovacoes",
-          "type": "number",
-          "required": true,
-          "system": false
-        },
-        {
           "name": "responsavel",
           "type": "relation",
           "required": true,
@@ -331,6 +325,12 @@
           "required": false,
           "system": false,
           "selectValues": ["comum", "estudo"]
+        },
+        {
+          "name": "quantidade_renovacoes",
+          "type": "number",
+          "required": true,
+          "system": false
         }
       ],
       "indexes": [
