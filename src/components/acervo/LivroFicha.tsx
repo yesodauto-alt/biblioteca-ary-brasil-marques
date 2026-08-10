@@ -116,36 +116,24 @@ export function LivroFicha({ livroId, open, onOpenChange }: LivroFichaProps) {
 
               <div className="bg-white border-2 border-[#1F5C8B]/20 rounded-lg p-4">
                 <p className="text-sm font-bold text-gray-500 uppercase tracking-wide mb-3">
-                  Localização Física
+                  Catalogação
                 </p>
                 <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <p className="text-xs text-gray-500 font-medium">Livro nº</p>
-                    <p className="text-base font-bold text-[#1F5C8B]">{livro.numero_cadastro}</p>
-                  </div>
                   <div>
                     <p className="text-xs text-gray-500 font-medium">COD</p>
                     <p className="text-base font-bold text-gray-900">{livro.cod || '—'}</p>
                   </div>
                   <div>
+                    <p className="text-xs text-gray-500 font-medium">CUTTER</p>
+                    <p className="text-base font-bold text-gray-900">{livro.cutter || '—'}</p>
+                  </div>
+                  <div className="col-span-2">
                     <p className="text-xs text-gray-500 font-medium">Descrição</p>
                     <p className="text-base font-semibold text-gray-900">
                       {livro.descricao || '—'}
                     </p>
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-500 font-medium">CUTTER</p>
-                    <p className="text-base font-bold text-gray-900">{livro.cutter || '—'}</p>
-                  </div>
                 </div>
-                {livro.localizacao_fisica && (
-                  <div className="mt-3 pt-3 border-t border-gray-100">
-                    <p className="text-xs text-gray-500 font-medium">Localização na Estante</p>
-                    <p className="text-base font-semibold text-gray-900">
-                      {livro.localizacao_fisica}
-                    </p>
-                  </div>
-                )}
               </div>
 
               <div className="flex gap-3">

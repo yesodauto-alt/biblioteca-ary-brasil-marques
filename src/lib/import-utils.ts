@@ -43,7 +43,9 @@ export const IMPORT_CONFIGS: Record<string, ImportConfig> = {
       { name: 'autor', label: 'Autor', required: true, type: 'text' },
       { name: 'editora', label: 'Editora', required: true, type: 'text' },
       { name: 'categoria', label: 'Categoria', required: false, type: 'text' },
-      { name: 'localizacao_fisica', label: 'Localização Física', required: false, type: 'text' },
+      { name: 'cod', label: 'COD', required: false, type: 'text' },
+      { name: 'descricao', label: 'Descrição', required: false, type: 'text' },
+      { name: 'cutter', label: 'CUTTER', required: false, type: 'text' },
       { name: 'observacoes', label: 'Observações', required: false, type: 'text' },
       {
         name: 'status',

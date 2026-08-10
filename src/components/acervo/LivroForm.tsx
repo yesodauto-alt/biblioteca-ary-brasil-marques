@@ -5,13 +5,27 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
 } from '@/components/ui/dialog'
-import { createLivro, updateLivro, type LivroFormData, type Livro } from '@/services/livros'
+import {
+  createLivro,
+  updateLivro,
+  STATUS_LABELS,
+  type LivroFormData,
+  type Livro,
+  type LivroStatus,
+} from '@/services/livros'
 import { extractFieldErrors, type FieldErrors } from '@/lib/pocketbase/errors'
 
 interface LivroFormProps {
@@ -20,6 +34,8 @@ interface LivroFormProps {
   onSaved: () => void
   livro?: Livro | null
 }
+
+const STATUS_VALUES = Object.keys(STATUS_LABELS) as LivroStatus[]
 
 export function LivroForm({ open, onOpenChange, onSaved, livro }: LivroFormProps) {
   const [loading, setLoading] = useState(false)
@@ -30,11 +46,11 @@ export function LivroForm({ open, onOpenChange, onSaved, livro }: LivroFormProps
     autor: '',
     editora: '',
     categoria: '',
-    localizacao_fisica: '',
     observacoes: '',
     cod: '',
     descricao: '',
     cutter: '',
+    status: 'disponível',
   })
 
   useEffect(() => {
@@ -46,11 +62,11 @@ export function LivroForm({ open, onOpenChange, onSaved, livro }: LivroFormProps
           autor: livro.autor,
           editora: livro.editora,
           categoria: livro.categoria || '',
-          localizacao_fisica: livro.localizacao_fisica || '',
           observacoes: livro.observacoes || '',
           cod: livro.cod || '',
           descricao: livro.descricao || '',
           cutter: livro.cutter || '',
+          status: livro.status,
         })
       } else {
         setForm({
@@ -59,11 +75,11 @@ export function LivroForm({ open, onOpenChange, onSaved, livro }: LivroFormProps
           autor: '',
           editora: '',
           categoria: '',
-          localizacao_fisica: '',
           observacoes: '',
           cod: '',
           descricao: '',
           cutter: '',
+          status: 'disponível',
         })
       }
       setFieldErrors({})
@@ -85,9 +101,9 @@ export function LivroForm({ open, onOpenChange, onSaved, livro }: LivroFormProps
         titulo: form.titulo.trim(),
         autor: form.autor.trim(),
         editora: form.editora.trim(),
+        status: form.status || 'disponível',
       }
       if (form.categoria?.trim()) data.categoria = form.categoria.trim()
-      if (form.localizacao_fisica?.trim()) data.localizacao_fisica = form.localizacao_fisica.trim()
       if (form.observacoes?.trim()) data.observacoes = form.observacoes.trim()
       if (form.cod?.trim()) data.cod = form.cod.trim()
       if (form.descricao?.trim()) data.descricao = form.descricao.trim()
@@ -252,16 +268,24 @@ export function LivroForm({ open, onOpenChange, onSaved, livro }: LivroFormProps
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="localizacao_fisica" className="text-base font-semibold">
-              Localização Física (opcional)
+            <Label htmlFor="status" className="text-base font-semibold">
+              Status
             </Label>
-            <Input
-              id="localizacao_fisica"
-              value={form.localizacao_fisica}
-              onChange={(e) => handleFieldChange('localizacao_fisica', e.target.value)}
-              className="h-12 text-base"
-              placeholder="Ex: Estante A, Prateleira 3"
-            />
+            <Select value={form.status} onValueChange={(v) => handleFieldChange('status', v)}>
+              <SelectTrigger className="h-12 text-base">
+                <SelectValue placeholder="Selecione o status" />
+              </SelectTrigger>
+              <SelectContent>
+                {STATUS_VALUES.map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {STATUS_LABELS[status]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {fieldErrors.status && (
+              <p className="text-sm text-red-500 font-medium">{fieldErrors.status}</p>
+            )}
           </div>
 
           <div className="space-y-2">

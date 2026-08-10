@@ -9,7 +9,6 @@ export interface Livro {
   autor: string
   editora: string
   categoria: string
-  localizacao_fisica: string
   observacoes: string
   cod: string
   descricao: string
@@ -25,8 +24,8 @@ export interface LivroFormData {
   autor: string
   editora: string
   categoria?: string
-  localizacao_fisica?: string
   observacoes?: string
+  status?: LivroStatus
   cod?: string
   descricao?: string
   cutter?: string
@@ -60,8 +59,8 @@ export const getLivro = async (id: string): Promise<Livro> => {
 
 export const createLivro = async (data: LivroFormData): Promise<Livro> => {
   return await pb.collection('livros').create<Livro>({
-    ...data,
     status: 'disponível',
+    ...data,
   })
 }
 

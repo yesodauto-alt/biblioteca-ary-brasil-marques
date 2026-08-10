@@ -94,7 +94,7 @@ export default function Acervo() {
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Buscar por número, título, autor ou editora..."
+          placeholder="Buscar por número, título, autor, editora, COD, descrição ou CUTTER..."
           className="h-12 pl-12 text-base border-gray-200"
         />
       </div>
@@ -121,21 +121,20 @@ export default function Acervo() {
       ) : (
         <div className="space-y-2">
           {/* Column headers (desktop) */}
-          <div className="hidden md:grid grid-cols-[100px_1.5fr_1.5fr_70px_1fr_80px_140px_110px] gap-3 px-4 py-2 text-sm font-bold text-gray-500 uppercase tracking-wide">
+          <div className="hidden md:grid grid-cols-[100px_1.5fr_1.5fr_80px_1fr_90px_120px] gap-3 px-4 py-2 text-sm font-bold text-gray-500 uppercase tracking-wide">
             <span>Cadastro</span>
             <span>Título</span>
             <span>Autor</span>
             <span>COD</span>
             <span>Descrição</span>
             <span>Cutter</span>
-            <span>Localização</span>
             <span>Status</span>
           </div>
           {filtered.map((livro) => (
             <button
               key={livro.id}
               onClick={() => handleRowClick(livro.id)}
-              className="w-full text-left bg-white border border-gray-200/80 rounded-lg p-4 hover:border-[#1F5C8B]/40 hover:bg-[#1F5C8B]/5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#1F5C8B]/30 md:grid md:grid-cols-[100px_1.5fr_1.5fr_70px_1fr_80px_140px_110px] md:items-center md:gap-3 flex flex-col gap-2"
+              className="w-full text-left bg-white border border-gray-200/80 rounded-lg p-4 hover:border-[#1F5C8B]/40 hover:bg-[#1F5C8B]/5 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-[#1F5C8B]/30 md:grid md:grid-cols-[100px_1.5fr_1.5fr_80px_1fr_90px_120px] md:items-center md:gap-3 flex flex-col gap-2"
             >
               <div className="flex items-center gap-2">
                 <span className="md:hidden text-sm font-bold text-gray-500">Nº </span>
@@ -151,9 +150,6 @@ export default function Acervo() {
               <span className="text-sm text-gray-600 break-words">{livro.descricao || '—'}</span>
               <span className="text-sm font-semibold text-gray-700 break-words">
                 {livro.cutter || '—'}
-              </span>
-              <span className="text-sm text-gray-600 break-words">
-                {livro.localizacao_fisica || '—'}
               </span>
               <div>
                 <Badge className={STATUS_BADGE_CLASSES[livro.status]}>
